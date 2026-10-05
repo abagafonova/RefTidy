@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Статья → Zotero: библиографическая карточка | RefTidy</title>
-<meta name="description" content="Собирает чистую библиографическую карточку из заметок Obsidian, строк «Цитировать», ссылок или DOI. На выходе — файл .ris для Zotero. Бесплатно, в браузере, данные не покидают устройство.">
+<meta name="description" content="Собирает чистую библиографическую карточку из заметок Obsidian, строк «Цитировать», ссылок или DOI. На выходе – файл .ris для Zotero. Бесплатно, в браузере, данные не покидают устройство.">
 <meta name="robots" content="index, follow">
 
 <!-- Prevent flash of wrong language -->
@@ -348,12 +348,12 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
 
 <header class="page-header">
   <h1>
-    <span class="ru">Статья → Zotero</span>
-    <span class="en">Article → Zotero</span>
+    <span class="ru">RefTidy – библиография для Zotero без ручного набора</span>
+    <span class="en">RefTidy – bibliography for Zotero without retyping</span>
   </h1>
   <p class="sub">
-    <span class="ru">Собирает чистую библиографическую карточку из того, что у вас уже есть: заметки Obsidian, строки «Цитировать», ссылки или DOI. На выходе — файл <code>.ris</code>, который Zotero импортирует вместе с правильными авторами и годом.</span>
-    <span class="en">Builds a clean bibliographic record from what you already have: Obsidian notes, "Cite" strings, URLs, or DOIs. The output is a <code>.ris</code> file that Zotero imports with correct authors and year.</span>
+    <span class="ru">Собирает чистую библиографическую карточку из того, что у вас уже есть: строки «Цитировать», ссылки, DOI или заметки Obsidian. На выходе – файл <code>.ris</code>, который Zotero импортирует вместе с правильными выходными данными.</span>
+    <span class="en">Builds a clean bibliographic record from what you already have: citation strings, links, DOIs, or Obsidian notes. The output is a <code>.ris</code> file that Zotero imports with the publication details intact.</span>
   </p>
 </header>
 
@@ -375,8 +375,8 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
     <span class="en">Load bibliography as a list</span>
   </h2>
   <p class="hint">
-    <span class="ru">Для случая, когда записей сотни: список литературы из диссертации, статьи или курсовой. Разбирает оформление по ГОСТ 7.1 — книги, статьи, главы в сборниках, диссертации, архивные дела. Заголовки разделов распознаются и переносятся в Zotero метками, так что структура списка не теряется.</span>
-    <span class="en">For when you have hundreds of entries: the reference list from a dissertation, article, or term paper. Parses GOST 7.1 formatting — books, articles, book chapters, dissertations, archival files. Section headings are recognised and transferred to Zotero as tags, so the list structure is preserved.</span>
+    <span class="ru">Для случая, когда записей сотни: список литературы из диссертации, статьи или курсовой. Разбирает оформление по ГОСТ 7.1 – книги, статьи, главы в сборниках, диссертации, архивные дела. Заголовки разделов распознаются и переносятся в Zotero метками, так что структура списка не теряется.</span>
+    <span class="en">For when you have hundreds of entries: the reference list from a dissertation, article, or term paper. Parses GOST 7.1 formatting – books, articles, book chapters, dissertations, archival files. Section headings are recognised and transferred to Zotero as tags, so the list structure is preserved.</span>
   </p>
   <div id="dropMany">
     <span class="ru">Перетащите сюда <b>.txt</b>, <b>.md</b> или <b>.docx</b> со списком<br><span class="tiny">или нажмите, чтобы выбрать файл</span></span>
@@ -444,13 +444,13 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
         </select>
       </label>
       <span class="tiny">
-        <span class="ru">кириллица романизируется, латинские записи уедут без изменений; подробно о схемах — во вкладке «Одна запись»</span>
-        <span class="en">Cyrillic is romanised, Latin entries pass through unchanged; details on schemes — in the "One entry" tab</span>
+        <span class="ru">кириллица романизируется, латинские записи уедут без изменений; подробно о схемах – во вкладке «Одна запись»</span>
+        <span class="en">Cyrillic is romanised, Latin entries pass through unchanged; details on schemes – in the "One entry" tab</span>
       </span>
     </div>
     <p class="tiny" style="margin-top:10px">
-      <span class="ru">В Zotero: <i>Файл → Импорт…</i> → выбрать файл → «Поместить импортированные коллекции и элементы в новую коллекцию» — так вся библиография ляжет отдельной папкой, а разделы списка останутся метками.</span>
-      <span class="en">In Zotero: <i>File → Import…</i> → select the file → "Place imported collections and items in a new collection" — the full bibliography will go into a separate folder, and section headings will become tags.</span>
+      <span class="ru">В Zotero: <i>Файл → Импорт…</i> → выбрать файл → «Поместить импортированные коллекции и элементы в новую коллекцию» – так вся библиография ляжет отдельной папкой, а разделы списка останутся метками.</span>
+      <span class="en">In Zotero: <i>File → Import…</i> → select the file → "Place imported collections and items in a new collection" – the full bibliography will go into a separate folder, and section headings will become tags.</span>
     </p>
   </div>
 </div>
@@ -458,23 +458,48 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
 <!-- ═══ ПАНЕЛЬ: ОДНА ЗАПИСЬ ═══ -->
 <div id="paneOne"><div class="card">
   <h2>
-    <span class="ru">1. Дайте источник</span>
-    <span class="en">1. Provide the source</span>
+    <span class="ru">1. Добавьте источник</span>
+    <span class="en">1. Add your source</span>
   </h2>
   <p class="hint">
-    <span class="ru">Любой из трёх способов — что под рукой. Самый точный результат даёт строка «Цитировать» с сайта.</span>
-    <span class="en">Use any of the three options — whichever you have available. The most accurate results come from the "Cite" string copied from the article page.</span>
+    <span class="ru">Любой из трёх способов – что под рукой. Самый точный результат даёт строка «Цитировать» с сайта.</span>
+    <span class="en">Use any of the three options – whichever you have available. The most accurate results come from the "Cite" string copied from the article page.</span>
   </p>
 
   <div id="drop">
-    <span class="ru">Перетащите сюда <b>.md</b>-заметку из Obsidian<br><span class="tiny">или нажмите, чтобы выбрать файл</span></span>
-    <span class="en">Drop your Obsidian <b>.md</b> note here<br><span class="tiny">or click to choose a file</span></span>
+    <span class="ru">Перетащите сюда <b>.md</b>-заметку<br><span class="tiny">или нажмите, чтобы выбрать файл – если вы сохраняете публикации в Obsidian</span></span>
+    <span class="en">Drop a <b>.md</b> note here<br><span class="tiny">or click to choose a file – if you save publications to Obsidian</span></span>
     <input type="file" id="file" accept=".md,.markdown,.txt" class="hidden">
   </div>
 
+  <details style="margin-top:12px">
+    <summary class="tiny">
+      <span class="ru">Пользуетесь Obsidian?</span>
+      <span class="en">Using Obsidian?</span>
+    </summary>
+    <div class="tiny" style="margin:10px 0 0;line-height:1.55">
+      <p style="margin:0 0 8px">
+        <span class="ru">Obsidian – редактор заметок, в который удобно сохранять статьи прямо из браузера расширением <b>Web Clipper</b>. Здесь это один из способов ввода, а не обязательное условие: всё остальное работает и без него.</span>
+        <span class="en">Obsidian is a note-taking app; its <b>Web Clipper</b> extension saves publications straight from the browser. Here it is simply one way to supply a source – everything else works without it.</span>
+      </p>
+      <p style="margin:0 0 10px">
+        <span class="ru">Готовый шаблон клиппера складывает выходные данные публикации в свойства заметки и дублирует их в её текст. Тогда карточка собирается из метаданных страницы, а не из разбора её текста, – и выходит точнее.</span>
+        <span class="en">The ready-made clipper template writes the publication’s metadata into the note’s properties and repeats it in the note body. The record is then built from the page’s own metadata rather than from parsing its text, which is more accurate.</span>
+      </p>
+      <button class="btn-ghost" id="btnClipper" type="button">
+        <span class="ru">Скачать шаблон для Web Clipper</span>
+        <span class="en">Download the Web Clipper template</span>
+      </button>
+      <p style="margin:10px 0 0">
+        <span class="ru">В Obsidian Web Clipper: шестерёнка → <i>Templates</i> → импорт файла.</span>
+        <span class="en">In Obsidian Web Clipper: gear icon → <i>Templates</i> → import the file.</span>
+      </p>
+    </div>
+  </details>
+
   <p class="hint" style="margin-top:16px">
-    <span class="ru">Либо вставьте готовую ссылку на статью, DOI или строку цитирования (на КиберЛенинке — кнопка с кавычками «Цитировать», вкладка ГОСТ):</span>
-    <span class="en">Or paste a direct link to the article, a DOI, or a citation string (on CyberLeninka, use the "Cite" button ("Цитировать"), GOST tab):</span>
+    <span class="ru">Либо вставьте ссылку на публикацию, DOI или готовую строку цитирования. На КиберЛенинке её даёт кнопка с кавычками «Цитировать», вкладка ГОСТ.</span>
+    <span class="en">Or paste a link to the publication, a DOI, or a ready-made citation string – most journal sites offer one behind a “Cite” button.</span>
   </p>
   <textarea id="paste" placeholder="Лукина Н. П. Новые тенденции… // Гуманитарная информатика. 2015. №9. URL: https://cyberleninka.ru/article/n/… (дата обращения: 04.10.2026).&#10;&#10;или  10.17976/jpps/2016.02.06&#10;или  https://cyberleninka.ru/article/n/…"></textarea>
   <div class="row" style="margin-top:12px">
@@ -482,9 +507,17 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
       <span class="ru">Разобрать</span>
       <span class="en">Parse</span>
     </button>
+    <span class="tiny" style="align-self:center">
+      <span class="ru">Примеры:</span><span class="en">Examples:</span>
+    </span>
     <button class="btn-ghost" id="btnDemo">
-      <span class="ru">Показать на примере</span>
-      <span class="en">Show example</span>
+      <span class="ru">статья</span><span class="en">journal article</span>
+    </button>
+    <button class="btn-ghost" id="btnDemoBook">
+      <span class="ru">книга</span><span class="en">book</span>
+    </button>
+    <button class="btn-ghost" id="btnDemoThesis">
+      <span class="ru">диссертация</span><span class="en">dissertation</span>
     </button>
   </div>
 </div></div>
@@ -498,8 +531,8 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
       <span class="en">2. Review the record</span>
     </h2>
     <p class="hint">
-      <span class="ru">Серая подпись у поля показывает, откуда взялось значение. Всё можно править руками — правка побеждает любой автоматический разбор.</span>
-      <span class="en">The grey label next to each field shows where the value came from. Everything is editable — manual edits override any automatic parsing.</span>
+      <span class="ru">Подпись рядом с полем показывает, откуда взялось значение. Все записи можно поправить вручную.</span>
+      <span class="en">The label next to each field shows where the value came from. Every entry can be corrected by hand.</span>
     </p>
     <div id="messages"></div>
 
@@ -524,7 +557,7 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
         <span class="prov" id="p_authors"></span>
       </label>
       <div>
-        <textarea id="f_authors" style="min-height:62px" placeholder="Фамилия, И. О. — по одному автору в строке"></textarea>
+        <textarea id="f_authors" style="min-height:62px" placeholder="Фамилия, И. О. – по одному автору в строке"></textarea>
         <div class="tiny">
           <span class="ru">По одному в строке, в виде «Фамилия, И. О.» или «Фамилия, Имя Отчество».</span>
           <span class="en">One per line, as "Last, I. O." or "Last, First Patronymic".</span>
@@ -538,7 +571,7 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
       <div><textarea id="f_title" style="min-height:52px"></textarea></div>
 
       <label class="fl">
-        <span class="ru">Журнал / сборник</span><span class="en">Journal / volume</span>
+        <span class="ru">Журнал / сборник</span><span class="en">Journal / collection</span>
         <span class="prov" id="p_container"></span>
       </label>
       <div><input type="text" id="f_container"></div>
@@ -601,8 +634,8 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
       <span class="en">3. Import into Zotero</span>
     </h2>
     <p class="hint">
-      <span class="ru">Два равноправных пути — если в компьютерном классе сложности с папкой «Загрузки», берите второй.</span>
-      <span class="en">Two equivalent options — if the Downloads folder is inaccessible, use the second one.</span>
+      <span class="ru">Два равноправных способа – результат одинаковый.</span>
+      <span class="en">Two equivalent routes – the result is the same.</span>
     </p>
     <div class="row">
       <button id="btnRis" class="btn-primary">
@@ -628,8 +661,8 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
         <span class="en"><b>Via clipboard:</b> "Copy RIS" → in Zotero menu <i>File → Import from Clipboard</i>.</span>
       </li>
       <li>
-        <span class="ru">Перетащите свою <b>.md</b>-заметку мышкой на появившуюся в Zotero карточку — она прикрепится как вложение.</span>
-        <span class="en">Drag your <b>.md</b> note onto the newly created Zotero entry — it will attach as a file.</span>
+        <span class="ru">Перетащите свою <b>.md</b>-заметку мышкой на появившуюся в Zotero карточку – она прикрепится как вложение.</span>
+        <span class="en">Drag your <b>.md</b> note onto the newly created Zotero entry – it will attach as a file.</span>
       </li>
     </ol>
     <details style="margin-top:12px">
@@ -652,15 +685,15 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
       <span class="en">For an English-language article</span>
     </h2>
     <p class="hint">
-      <span class="ru">Необязательный блок — нужен, если этот источник пойдёт в список литературы статьи на английском: кириллицу там не принимают. Выгрузка отдельная, а не вместо обычной.</span>
-      <span class="en">Optional — needed only if this source will appear in an English-language reference list where Cyrillic is not accepted. This is a separate export, not a replacement for the regular one.</span>
+      <span class="ru">Необязательный блок – нужен, если этот источник пойдёт в список литературы статьи на английском: кириллицу там не принимают. Выгрузка отдельная, а не вместо обычной.</span>
+      <span class="en">Optional – needed only if this source will appear in an English-language reference list where Cyrillic is not accepted. This is a separate export, not a replacement for the regular one.</span>
     </p>
 
     <div class="row">
       <label class="tiny">
         <span class="ru">Схема:</span><span class="en">Scheme:</span>&nbsp;
         <select id="tl_scheme">
-          <option value="ala-lc">ALA-LC — по умолчанию</option>
+          <option value="ala-lc">ALA-LC – по умолчанию</option>
           <option value="gost-b">ГОСТ 7.79-2000, система Б</option>
           <option value="bgn">BGN/PCGN</option>
         </select>
@@ -678,9 +711,9 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
         <span class="en">Which scheme for which cases</span>
       </summary>
       <div class="scheme-desc tiny" style="margin:10px 0 0">
-        <p><b>ALA-LC</b> — <span class="ru">англоязычные гуманитарные журналы, университетские издательства, библиотечные каталоги. Берите её, если редакция не требует другого.</span><span class="en">English-language humanities journals, university presses, library catalogues. Use this if the journal does not specify otherwise.</span></p>
-        <p><b>ГОСТ 7.79-2000, система Б</b> — <span class="ru">блок <i>References</i> в российских журналах из Scopus и Web of Science.</span><span class="en">the <i>References</i> section in Russian journals indexed in Scopus and Web of Science.</span></p>
-        <p><b>BGN/PCGN</b> — <span class="ru">британские издательства, атласы, географические названия. Узнаётся по <i>Yekaterinburg</i>.</span><span class="en">British publishers, atlases, geographic names. Recognisable by <i>Yekaterinburg</i>.</span></p>
+        <p><b>ALA-LC</b> – <span class="ru">англоязычные гуманитарные журналы, университетские издательства, библиотечные каталоги. Берите её, если редакция не требует другого.</span><span class="en">English-language humanities journals, university presses, library catalogues. Use this if the journal does not specify otherwise.</span></p>
+        <p><b>ГОСТ 7.79-2000, система Б</b> – <span class="ru">блок <i>References</i> в российских журналах из Scopus и Web of Science.</span><span class="en">the <i>References</i> section in Russian journals indexed in Scopus and Web of Science.</span></p>
+        <p><b>BGN/PCGN</b> – <span class="ru">британские издательства, атласы, географические названия. Узнаётся по <i>Yekaterinburg</i>.</span><span class="en">British publishers, atlases, geographic names. Recognisable by <i>Yekaterinburg</i>.</span></p>
         <p><span class="ru"><b>И главное:</b> схему нельзя менять посередине списка литературы. Одна фамилия в двух написаниях читается как два разных человека.</span><span class="en"><b>Important:</b> do not switch schemes mid-reference-list. The same surname in two spellings looks like two different people.</span></p>
       </div>
     </details>
@@ -693,15 +726,15 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
       <div>
         <textarea id="tl_entitle" style="min-height:52px" placeholder="English translation of the title"></textarea>
         <div class="tiny">
-          <span class="ru">APA 7 требует после романизированного заглавия английский перевод в квадратных скобках. Оставите поле пустым — в примечании к записи останется напоминание.</span>
+          <span class="ru">APA 7 требует после романизированного заглавия английский перевод в квадратных скобках. Оставите поле пустым – в примечании к записи останется напоминание.</span>
           <span class="en">APA 7 requires an English translation in square brackets after the romanised title. Leave blank and a reminder will be added to the record note.</span>
         </div>
       </div>
     </div>
 
     <p class="hint" style="margin-top:16px">
-      <span class="ru">Как это будет выглядеть в списке литературы — приблизительно, по APA 7:</span>
-      <span class="en">How this will look in a reference list — approximately, APA 7 style:</span>
+      <span class="ru">Как это будет выглядеть в списке литературы – приблизительно, по APA 7:</span>
+      <span class="en">How this will look in a reference list – approximately, APA 7 style:</span>
     </p>
     <pre id="tlApa"></pre>
     <details style="margin-top:8px">
@@ -743,7 +776,7 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
       <span class="en">Works with CyberLeninka and eLibrary</span>
     </h2>
     <p>
-      <span class="ru">RefTidy распознаёт заметки Obsidian, сделанные клиппером с КиберЛенинки и eLibrary, — извлекает авторов, заглавие, журнал и год прямо из структуры страницы. Файл не покидает ваше устройство.</span>
+      <span class="ru">RefTidy распознаёт заметки Obsidian, сделанные клиппером с КиберЛенинки и eLibrary, – извлекает авторов, заглавие, журнал и год прямо из структуры страницы. Файл не покидает ваше устройство.</span>
       <span class="en">RefTidy recognises Obsidian notes clipped from CyberLeninka and eLibrary, extracting authors, title, journal, and year directly from the page structure. Your file never leaves your device.</span>
     </p>
   </div>
@@ -777,8 +810,8 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
     </a>
     <a href="https://pdf.urbantransmission.org/" target="_blank" rel="noopener noreferrer" class="tlink">
       <span class="tlink-title">TurnPDF</span>
-      <span class="tlink-sub ru">Повернуть страницы PDF — в браузере, без загрузки</span>
-      <span class="tlink-sub en">Rotate PDF pages in your browser — no upload required</span>
+      <span class="tlink-sub ru">Повернуть страницы PDF – в браузере, без загрузки</span>
+      <span class="tlink-sub en">Rotate PDF pages in your browser – no upload required</span>
       <span class="tlink-url">pdf.urbantransmission.org</span>
     </a>
     <a href="https://codebook.urbantransmission.org/" target="_blank" rel="noopener noreferrer" class="tlink">
@@ -801,7 +834,7 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
       <p>© 2026 <span class="ru">Анна Агафонова, к.и.н.</span><span class="en">Anna B. Agafonova, PhD</span> · <a href="https://urbantransmission.org" target="_blank" rel="noopener noreferrer">urbantransmission.org</a></p>
       <p>
         <span class="ru">Работает в браузере – данные остаются у вас.</span>
-        <span class="en">Runs entirely in your browser — your data never leaves your device.</span>
+        <span class="en">Runs entirely in your browser – your data never leaves your device.</span>
       </p>
     </div>
     <div class="footer-right">
@@ -812,6 +845,11 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
       <a href="terms.html">
         <span class="ru">Условия использования</span>
         <span class="en">Terms of Use</span>
+      </a>
+      <!-- при необходимости замените адрес на страницу контактов или mailto: -->
+      <a href="https://urbantransmission.org" target="_blank" rel="noopener noreferrer">
+        <span class="ru">Нашли ошибку? Напишите</span>
+        <span class="en">Found a problem? Get in touch</span>
       </a>
     </div>
   </div>
@@ -985,13 +1023,13 @@ function parseCyberleninka(full){
   const own = new RegExp('https?://cyberleninka\\.ru/article/n/[a-z0-9-]+');
   const slug = own.exec(head);
   if (slug && rec.title){
-    rec.warnings.push('В заметке нет адреса самой статьи — ссылки в тексте ведут на похожие работы. Надёжнее вставить строку «Цитировать» с сайта: в ней есть канонический URL и номер выпуска.');
+    rec.warnings.push('В заметке нет адреса самой статьи – ссылки в тексте ведут на похожие работы. Надёжнее вставить строку «Цитировать» с сайта: в ней есть канонический URL и номер выпуска.');
   }
   if (/Ключевые слова\s*\n+\s*\*\/[\s\/]*\*/.test(head)){
-    rec.warnings.push('Ключевые слова на странице КиберЛенинки выведены пустыми — в клипе их нет. Заполните вручную, если нужны.');
+    rec.warnings.push('Ключевые слова на странице КиберЛенинки выведены пустыми – в клипе их нет. Заполните вручную, если нужны.');
   }
   if (/[А-Яа-я]\d|\d[А-Яа-я]/.test(head.slice(0,4000)) && /Адрес статьи/.test(head)){
-    rec.warnings.push('Поле «Адрес статьи» в тексте статьи повреждено (латиница подменена кириллицей при распознавании PDF) — оно не используется.');
+    rec.warnings.push('Поле «Адрес статьи» в тексте статьи повреждено (латиница подменена кириллицей при распознавании PDF) – оно не используется.');
   }
   return rec;
 }
@@ -1024,7 +1062,7 @@ function parseElibrary(full){
       rec.title = tm[1].replace(/\s+/g,' ').trim();
       if (rec.title === rec.title.toUpperCase() && /[А-ЯЁ]/.test(rec.title)){
         rec.title = rec.title.charAt(0) + rec.title.slice(1).toLowerCase();
-        rec.warnings.push('eLibrary хранит заглавие капслоком. Регистр восстановлен автоматически — проверьте имена собственные и аббревиатуры.');
+        rec.warnings.push('eLibrary хранит заглавие капслоком. Регистр восстановлен автоматически – проверьте имена собственные и аббревиатуры.');
       }
       P('title');
     }
@@ -1047,7 +1085,7 @@ function parseElibrary(full){
     const sup = /Научный руководитель:\s*([^<|\n]+)/.exec(head);
     rec.warnings.push('В заметке указан научный руководитель' +
       (sup ? ' (' + sup[1].replace(/<[^>]*>/g,'').trim() + ')' : '') +
-      ' — в авторы он не включён. Это намеренно: научрук не является автором публикации.');
+      ' – в авторы он не включён. Это намеренно: научрук не является автором публикации.');
   }
 
   const meta = /Тип:\s*([^\n]*?)\s*Язык:\s*(\S+)\s*Год издания:\s*(\d{4})(?:\s*Страницы:\s*([\d\-–]+))?/.exec(head);
@@ -1092,7 +1130,7 @@ function parseElibrary(full){
   const doiHead = RE_DOI.exec(head);
   if (doiHead){ rec.doi = doiHead[0]; rec.provenance.doi = 'страница eLibrary'; }
   else if (RE_DOI.test(full)){
-    rec.warnings.push('DOI найден только в списке литературы — он принадлежит процитированной работе, а не этой. В карточку не записан.');
+    rec.warnings.push('DOI найден только в списке литературы – он принадлежит процитированной работе, а не этой. В карточку не записан.');
   }
   return rec;
 }
@@ -1363,12 +1401,12 @@ function parseGost(raw, ctx){
         if (volTitle){
           rec.title = base + (/\.$/.test(base) ? ' ' : '. ') + 'Т. ' + volNo[1] + ': ' + volTitle;
           rec.warnings.push('Многотомное издание: том ' + volNo[1] + ofSet
-            + '. Собственное заглавие тома вписано в общее — своего поля для него в Zotero нет. Проверьте, как это выглядит в вашем стиле оформления.');
+            + '. Собственное заглавие тома вписано в общее – своего поля для него в Zotero нет. Проверьте, как это выглядит в вашем стиле оформления.');
         } else {
           rec.title  = base;
           rec.volume = volNo[1];
           rec.warnings.push('Многотомное издание: запись заведена на том ' + volNo[1] + ofSet
-            + '. Если нужен комплект целиком — очистите поле тома.');
+            + '. Если нужен комплект целиком – очистите поле тома.');
         }
         // у тома бывает свой год издания, он точнее диапазона у всего комплекта
         const after = volTail.slice(volNo.index + volNo[0].length);
@@ -1458,13 +1496,13 @@ function parseGost(raw, ctx){
   const hasContributors = (rec.editors && rec.editors.length) || (rec.translators && rec.translators.length);
   if (rec.noAuthor && hasContributors){
     rec.warnings.push(rec.compilers
-      ? 'У издания нет автора — есть составитель. В Zotero отдельного типа «составитель» нет, поэтому он записан редактором (Editor): это стандартная практика, и в списке литературы он отобразится корректно.'
-      : 'У издания нет автора — ответственность несёт редактор или переводчик, он записан соответствующим типом.');
+      ? 'У издания нет автора – есть составитель. В Zotero отдельного типа «составитель» нет, поэтому он записан редактором (Editor): это стандартная практика, и в списке литературы он отобразится корректно.'
+      : 'У издания нет автора – ответственность несёт редактор или переводчик, он записан соответствующим типом.');
   }
   if (!rec.title) rec.confidence = 'fail';
   else if (rec.noAuthor && !hasContributors && !anonymousGenre.test(rec.title) && !/(Нормативные|Делопроизводственная|Справочные|периодическ)/i.test(rec.section||'')){
     rec.confidence = 'check';
-    rec.warnings.push('Автор не определён, хотя запись не похожа на документ без автора — проверьте начало строки.');
+    rec.warnings.push('Автор не определён, хотя запись не похожа на документ без автора – проверьте начало строки.');
   } else if (!rec.year) rec.confidence = 'check';
   if (rec.title && rec.title.length > 300) rec.confidence = 'check';
 
@@ -1481,7 +1519,7 @@ function parseGost(raw, ctx){
     if (traces.length){
       rec.confidence = 'check';
       rec.warnings.push('В заглавии остались следы разбора (' + traces.join(', ')
-        + ') — вероятно, часть описания не отделилась. Проверьте поле «Заглавие».');
+        + ') – вероятно, часть описания не отделилась. Проверьте поле «Заглавие».');
     }
   }
   return rec;
@@ -1540,7 +1578,7 @@ function parseCitationString(raw){
       s = s.slice(m[0].length).replace(/^[,;]\s*/,'').trim();
     }
     if (authors.length)
-      rec.warnings.push('Авторы записаны полностью, без инициалов — так их отдаёт сайт. '
+      rec.warnings.push('Авторы записаны полностью, без инициалов – так их отдаёт сайт. '
         + 'Zotero сократит их по правилам выбранного стиля; если нужно иначе, поправьте поле «Авторы».');
   }
   if (authors.length){ rec.authors = authors; P('authors'); }
@@ -1837,7 +1875,7 @@ function toEnglishRecord(rec, scheme, strict, englishTitle){
                + (strict ? ' (строго по стандарту)' : ' (упрощённо, без диакритики)'));
   // null означает массовую выгрузку: напоминание про перевод там не нужно 458 раз
   if (englishTitle !== null && (!englishTitle || !String(englishTitle).trim()))
-    r.notes.push('Английский перевод заглавия не вписан — для APA 7 он обязателен.');
+    r.notes.push('Английский перевод заглавия не вписан – для APA 7 он обязателен.');
   r.raw = null;
   return r;
 }
@@ -1909,8 +1947,8 @@ if (typeof document !== 'undefined'){
     if (!rec.title || !rec.authors || !rec.authors.length){
       const d = document.createElement('div'); d.className = 'msg w';
       d.textContent = isEn()
-        ? 'Title or authors are missing — fill in manually or paste a "Cite" string from the article page.'
-        : 'Не хватает заглавия или авторов — заполните вручную либо вставьте строку «Цитировать» с сайта.';
+        ? 'Title or authors are missing – fill in manually or paste a "Cite" string from the article page.'
+        : 'Не хватает заглавия или авторов – заполните вручную либо вставьте строку «Цитировать» с сайта.';
       box.appendChild(d);
     }
     refresh();
@@ -1955,7 +1993,7 @@ if (typeof document !== 'undefined'){
   function refreshEn(){
     const en = enRecord();
     if (!en) return;
-    $('tlApa').textContent = apaPreview(en) || '—';
+    $('tlApa').textContent = apaPreview(en) || '–';
     const names = list => (list || []).map(a => a.family + (a.given ? ', ' + a.given : '')).join(' ; ');
     $('tlFields').textContent = [
       (en.authors || []).length ? 'Authors     ' + names(en.authors) : null,
@@ -2019,30 +2057,41 @@ if (typeof document !== 'undefined'){
              : 'Введён только DOI. Нажмите «Уточнить по DOI (Crossref)», чтобы подтянуть остальные поля.'] }); return; }
     if (/^https?:\/\/\S+$/.test(v)){ show({ type:'JOUR', url:v, provenance:{url:'введено вручную'}, warnings:[
       isEn() ? 'Only a URL was entered. Fill in the fields manually or paste a "Cite" string from the article page.'
-             : 'Введён только адрес. Заполните поля вручную или вставьте строку «Цитировать» с сайта — в ней есть всё сразу.'] }); return; }
+             : 'Введён только адрес. Заполните поля вручную или вставьте строку «Цитировать» с сайта – в ней есть всё сразу.'] }); return; }
     const looksGost = /\s\/\/\s|\s\/\s|[–—]\s*\d+\s*с\./.test(v);
     const looksSite = /дата обращения|дата доступа|accessed|URL\s*:/i.test(v)
       || (/\s\/\/\s/.test(v) && !/[–—−]\s*(?:1[5-9]\d{2}|20\d{2}|№|Вып\.|Т\.\s*\d|С\.\s*\d|P{1,2}\.\s*\d)/.test(v));
     const rec = (looksGost && !looksSite) ? parseGost(v, {}) : parseCitationString(v);
     if (!looksGost && !/^10\./.test(v)){
       rec.warnings = (rec.warnings || []).concat(
-        isEn() ? 'This does not look like GOST format (possibly APA, Chicago, MLA). Parsing by template is unreliable here — try "Match citation string (Crossref)" for style-independent matching.'
-               : 'Похоже, это не ГОСТ, а другой стиль (APA, Chicago, MLA). Разбор по шаблону здесь ненадёжен — нажмите «Распознать описание (Crossref)»: он сопоставит строку со своей базой независимо от стиля.');
+        isEn() ? 'This does not look like GOST format (possibly APA, Chicago, MLA). Parsing by template is unreliable here – try "Match citation string (Crossref)" for style-independent matching.'
+               : 'Похоже, это не ГОСТ, а другой стиль (APA, Chicago, MLA). Разбор по шаблону здесь ненадёжен – нажмите «Распознать описание (Crossref)»: он сопоставит строку со своей базой независимо от стиля.');
     }
     show(rec);
   });
 
-  $('btnDemo').addEventListener('click', () => {
-    $('paste').value = 'Лукина Н. П. Новые тенденции в социальной структуре информационного общества в контексте теории прекариата Гая Стэндинга // Гуманитарная информатика. 2015. №9. URL: https://cyberleninka.ru/article/n/novye-tendentsii-v-sotsialnoy-strukture-informatsionnogo-obschestva-v-kontekste-teorii-prekariata-gaya-stendinga (дата обращения: 04.10.2026).';
-    $('btnPaste').click();
+  /* Шаблон для Obsidian Web Clipper отдаётся прямо со страницы: так файл
+     остаётся самодостаточным и его можно раздавать одним .html. */
+  const CLIPPER_TEMPLATE = "{\n\t\"schemaVersion\": \"0.1.0\",\n\t\"name\": \"RefTidy\",\n\t\"behavior\": \"create\",\n\t\"noteContentFormat\": \"> [!cite] RefTidy – source metadata\\n> source: {{url}}\\n> canonical: {{meta:name:citation_fulltext_html_url}}\\n> title: {{meta:name:citation_title}}\\n> authors: {{meta:name:citation_author}}\\n> journal: {{meta:name:citation_journal_title}}\\n> year: {{meta:name:citation_publication_date}}\\n> volume: {{meta:name:citation_volume}}\\n> issue: {{meta:name:citation_issue}}\\n> firstpage: {{meta:name:citation_firstpage}}\\n> lastpage: {{meta:name:citation_lastpage}}\\n> doi: {{meta:name:citation_doi}}\\n> issn: {{meta:name:citation_issn}}\\n> publisher: {{meta:name:citation_publisher}}\\n> keywords: {{meta:name:citation_keywords}}\\n\\n{{content}}\",\n\t\"properties\": [\n\t\t{\n\t\t\t\"name\": \"source\",\n\t\t\t\"value\": \"{{url}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"canonical\",\n\t\t\t\"value\": \"{{meta:name:citation_fulltext_html_url}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"title\",\n\t\t\t\"value\": \"{{meta:name:citation_title}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"page_title\",\n\t\t\t\"value\": \"{{title}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"authors\",\n\t\t\t\"value\": \"{{meta:name:citation_author}}\",\n\t\t\t\"type\": \"multitext\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"journal\",\n\t\t\t\"value\": \"{{meta:name:citation_journal_title}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"year\",\n\t\t\t\"value\": \"{{meta:name:citation_publication_date}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"volume\",\n\t\t\t\"value\": \"{{meta:name:citation_volume}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"issue\",\n\t\t\t\"value\": \"{{meta:name:citation_issue}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"firstpage\",\n\t\t\t\"value\": \"{{meta:name:citation_firstpage}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"lastpage\",\n\t\t\t\"value\": \"{{meta:name:citation_lastpage}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"doi\",\n\t\t\t\"value\": \"{{meta:name:citation_doi}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"issn\",\n\t\t\t\"value\": \"{{meta:name:citation_issn}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"publisher\",\n\t\t\t\"value\": \"{{meta:name:citation_publisher}}\",\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"keywords\",\n\t\t\t\"value\": \"{{meta:name:citation_keywords}}\",\n\t\t\t\"type\": \"multitext\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"published\",\n\t\t\t\"value\": \"{{published}}\",\n\t\t\t\"type\": \"date\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"clipped\",\n\t\t\t\"value\": \"{{date}}\",\n\t\t\t\"type\": \"date\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"tags\",\n\t\t\t\"value\": \"clippings\",\n\t\t\t\"type\": \"multitext\"\n\t\t}\n\t],\n\t\"triggers\": [],\n\t\"noteNameFormat\": \"{{title}}\",\n\t\"path\": \"Clippings\"\n}\n";
+  if ($('btnClipper')) $('btnClipper').addEventListener('click', () =>
+    save('reftidy-obsidian-clipper.json', CLIPPER_TEMPLATE, 'application/json'));
+
+  const DEMOS = {
+    btnDemo: 'Лукина Н. П. Новые тенденции в социальной структуре информационного общества в контексте теории прекариата Гая Стэндинга // Гуманитарная информатика. 2015. №9. URL: https://cyberleninka.ru/article/n/novye-tendentsii-v-sotsialnoy-strukture-informatsionnogo-obschestva-v-kontekste-teorii-prekariata-gaya-stendinga (дата обращения: 04.10.2026).',
+    btnDemoBook: 'Гаврилов, Д.В. Горнозаводской Урал XVII – XX вв.: Избранные труды / Д.В. Гаврилов. – Екатеринбург: УрО РАН, 2005. – 616 с.',
+    btnDemoThesis: 'Виноградов, А.В. Казанская губерния в XIX - начале XX вв.: экологические и санитарные проблемы промышленного развития: автореф. дис. ... канд. ист. наук: 07.00.02 / Виноградов Андрей Владиславович. - Казань, 2013. – 27 с.'
+  };
+  Object.keys(DEMOS).forEach(id => {
+    const b = $(id); if (!b) return;
+    b.addEventListener('click', () => { $('paste').value = DEMOS[id]; $('btnPaste').click(); });
   });
 
   async function net(fn, label){
     const st = $('netStatus'); st.textContent = isEn() ? 'Requesting…' : 'Запрос…';
-    try { await fn(); st.textContent = label + (isEn() ? ' — done' : ' — готово'); }
+    try { await fn(); st.textContent = label + (isEn() ? ' – done' : ' – готово'); }
     catch(e){
       const msg = /429/.test(e.message)
-        ? (isEn() ? 'rate-limited — wait a minute and try again' : 'сервис временно ограничил частоту запросов — подождите минуту и попробуйте снова')
+        ? (isEn() ? 'rate-limited – wait a minute and try again' : 'сервис временно ограничил частоту запросов – подождите минуту и попробуйте снова')
         : e.message;
       st.textContent = (isEn() ? 'Failed: ' : 'Не получилось: ') + msg;
     }
@@ -2200,7 +2249,7 @@ if (typeof document !== 'undefined'){
       } else {
         if (only && it.confidence === 'ok') return;
         tr.className = 'pick';
-        const au = (it.authors || []).map(a => a.family).join(', ') || (it.noAuthor ? '—' : '');
+        const au = (it.authors || []).map(a => a.family).join(', ') || (it.noAuthor ? '–' : '');
         tr.innerHTML = '<td></td><td></td><td></td><td></td><td></td>';
         const td = tr.children;
         td[0].innerHTML = '<span class="st ' + it.confidence + '"></span>' + (i + 1);
@@ -2290,7 +2339,7 @@ if (typeof document !== 'undefined'){
   $('btnBiblio').addEventListener('click', () => net(async () => {
     const q = ($('paste').value.trim() || [$('f_authors').value, $('f_title').value,
                 $('f_container').value, $('f_year').value].filter(Boolean).join(' ')).trim();
-    if (!q) throw new Error(isEn() ? 'nothing to match — paste a citation string' : 'нечего распознавать — вставьте строку цитирования');
+    if (!q) throw new Error(isEn() ? 'nothing to match – paste a citation string' : 'нечего распознавать – вставьте строку цитирования');
     const r = await fetch('https://api.crossref.org/works?rows=1&select=DOI,title,author,container-title,issued,volume,issue,page,publisher,URL,type&query.bibliographic=' + encodeURIComponent(q));
     if (!r.ok) throw new Error('Crossref ' + r.status);
     const items = (await r.json()).message.items || [];
@@ -2310,8 +2359,8 @@ if (typeof document !== 'undefined'){
     if (m.type === 'book' || m.type === 'monograph') rec.type = 'BOOK';
     else if (m.type === 'book-chapter') rec.type = 'CHAP';
     rec.warnings = [isEn()
-      ? 'Record found in Crossref by citation string — citation style did not matter. Always verify the title and authors: matching is approximate and the first result is not always correct.'
-      : 'Запись найдена в Crossref по описанию — стиль цитирования роли не играл. Обязательно сверьте заглавие и авторов: сопоставление приблизительное, и первый результат не всегда верный.'];
+      ? 'Record found in Crossref by citation string – citation style did not matter. Always verify the title and authors: matching is approximate and the first result is not always correct.'
+      : 'Запись найдена в Crossref по описанию – стиль цитирования роли не играл. Обязательно сверьте заглавие и авторов: сопоставление приблизительное, и первый результат не всегда верный.'];
     show(rec);
   }, 'Crossref'));
 
