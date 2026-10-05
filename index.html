@@ -1,0 +1,2436 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Статья → Zotero: библиографическая карточка | RefTidy</title>
+<meta name="description" content="Собирает чистую библиографическую карточку из заметок Obsidian, строк «Цитировать», ссылок или DOI. На выходе — файл .ris для Zotero. Бесплатно, в браузере, данные не покидают устройство.">
+<meta name="robots" content="index, follow">
+
+<!-- Prevent flash of wrong language -->
+<script>
+(function(){
+  var s = localStorage.getItem('reftidy_lang');
+  var l = s ? s : ((navigator.language || '').startsWith('en') ? 'en' : 'ru');
+  document.documentElement.classList.add('lang-' + l);
+  document.documentElement.lang = l;
+})();
+</script>
+
+<style>
+/* ── Дизайн-токены ──────────────────────────────────────────────────── */
+:root{
+  --ink:#2b2620;--muted:#5f564a;--faint:#847a6b;
+  --accent:#A85D3E;--accent-deep:#7A4028;--accent-soft:rgba(168,93,62,.12);
+  --sage:#748268;--sage-deep:#4F5C47;--sage-soft:rgba(116,130,104,.15);
+  --line:rgba(140,95,70,.18);--line-light:rgba(140,95,70,.1);
+  --warn:#8a3a3a;--warn-bg:rgba(138,58,58,.06);--warn-border:rgba(138,58,58,.25);
+  --ok:#3d6b3d;--ok-bg:rgba(80,130,80,.08);--ok-border:rgba(80,130,80,.3);
+  --hero-bg:#2C1A0B;--gold-bright:#e3b969;
+  --radius:12px;--radius-lg:18px;
+  --serif:Cambria,Georgia,'Times New Roman',serif;
+  --mono:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;
+  --shadow:0 8px 30px rgba(130,70,45,.12);
+  --glass-blur:20px;
+  --glass-bg:rgba(255,252,246,.65);
+  --glass-border:rgba(255,255,255,.7);
+  --chip:rgba(168,93,62,.07);
+}
+
+/* ── Сброс и язык ────────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+html.lang-en .ru{display:none}
+html.lang-ru .en{display:none}
+/* span.en/span.ru for inline use */
+html.lang-en span.ru{display:none}
+html.lang-ru span.en{display:none}
+html.lang-en span.en{display:inline}
+html.lang-ru span.ru{display:inline}
+
+body{
+  font-family:var(--serif);color:var(--ink);line-height:1.65;
+  background:#f7f2e7;
+}
+
+a{color:var(--accent-deep);text-underline-offset:3px}
+a:hover{color:var(--accent)}
+img{max-width:100%;display:block}
+
+/* ── Hero band ───────────────────────────────────────────────────────── */
+.hero-band{
+  position:relative;width:100%;
+  height:clamp(90px,15vw,180px);
+  background:var(--hero-bg);
+  overflow:hidden;
+  box-shadow:0 6px 30px rgba(30,15,5,.22)
+}
+.hero-band img.hero-art{
+  display:block;width:100%;height:100%;
+  object-fit:contain;object-position:center;
+}
+
+/* ── Переключатель языка ─────────────────────────────────────────────── */
+.lang-switch{
+  position:absolute;right:14px;top:14px;
+  display:flex;gap:2px;
+  background:rgba(0,0,0,.2);border-radius:999px;padding:3px
+}
+.lang-switch button{
+  background:transparent;border:none;cursor:pointer;
+  font:700 12px/1 var(--mono);letter-spacing:.05em;
+  color:rgba(227,185,105,.45);
+  padding:8px 12px;min-width:44px;min-height:36px;
+  border-radius:999px;transition:color .15s,background .15s
+}
+.lang-switch button.on{color:var(--gold-bright);background:rgba(227,185,105,.22);text-shadow:0 0 8px rgba(227,185,105,.4)}
+.lang-switch button:hover{color:var(--gold-bright)}
+@media(max-width:480px){
+  .lang-switch{right:8px}
+  .lang-switch button{padding:7px 8px;font-size:11px;min-width:36px}
+}
+
+/* ── Основная обёртка ────────────────────────────────────────────────── */
+.wrap{
+  max-width:960px;margin:0 auto;
+  padding:36px 22px 52px;
+  position:relative;z-index:1
+}
+@media(min-width:769px){
+  .wrap{background:rgba(247,242,231,.88)}
+  .wrap::before,.wrap::after{
+    content:'';position:absolute;top:0;bottom:0;width:38px;pointer-events:none;
+  }
+  .wrap::before{right:100%;background:linear-gradient(to left,rgba(247,242,231,.6),transparent)}
+  .wrap::after{left:100%;background:linear-gradient(to right,rgba(247,242,231,.6),transparent)}
+}
+
+/* ── Шапка ───────────────────────────────────────────────────────────── */
+.page-header{margin-bottom:20px}
+.page-header h1{
+  font-weight:700;font-size:clamp(28px,3.2vw,40px);
+  line-height:1.25;letter-spacing:-.01em;margin-bottom:12px
+}
+.page-header .sub{color:var(--muted);font-size:16.5px;line-height:1.65;max-width:740px}
+
+/* ── Вкладки ─────────────────────────────────────────────────────────── */
+.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.tabs button{
+  font:inherit;cursor:pointer;font-size:15px;
+  border:1.5px solid var(--line);border-radius:999px;
+  background:rgba(255,255,255,.45);color:var(--muted);
+  padding:9px 20px;transition:border-color .15s,background .15s,color .15s
+}
+.tabs button.on{
+  background:var(--accent-deep);color:#fbf8f2;border-color:var(--accent-deep)
+}
+.tabs button:hover:not(.on){border-color:var(--accent);color:var(--accent-deep)}
+
+/* ── Карточки секций ─────────────────────────────────────────────────── */
+.card{
+  background:var(--glass-bg);
+  backdrop-filter:blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(160%);
+  border:1.5px solid var(--glass-border);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow);
+  padding:26px 24px;
+  margin-bottom:18px
+}
+@media(max-width:540px){.card{padding:18px 14px}}
+.card h2{
+  font-family:var(--serif);font-weight:700;
+  font-size:18px;color:var(--ink);margin-bottom:6px
+}
+.card .hint{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 14px}
+
+/* ── Drop zone ───────────────────────────────────────────────────────── */
+#drop,#dropMany{
+  border:1.5px dashed rgba(168,93,62,.45);
+  border-radius:var(--radius);padding:36px 18px;text-align:center;
+  color:var(--muted);transition:.15s;cursor:pointer;
+  background:rgba(255,255,255,.38)
+}
+#drop.hot,#dropMany.hot{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+#drop b,#dropMany b{color:var(--accent-deep)}
+
+/* ── Формы ───────────────────────────────────────────────────────────── */
+textarea,input[type=text],select{
+  width:100%;font:inherit;color:var(--ink);
+  background:rgba(255,255,255,.6);
+  border:1.5px solid var(--line);border-radius:10px;
+  padding:9px 12px;transition:border-color .15s
+}
+textarea:focus,input[type=text]:focus,select:focus{
+  outline:none;border-color:var(--accent)
+}
+textarea{min-height:84px;resize:vertical}
+select{cursor:pointer}
+
+/* ── Кнопки ──────────────────────────────────────────────────────────── */
+button{font:inherit;cursor:pointer;font-size:14px}
+.btn-primary{
+  border-radius:999px;border:none;
+  background:var(--accent-deep);color:#fbf8f2;
+  padding:10px 22px;font-weight:700;min-height:44px;
+  transition:transform .15s,filter .15s
+}
+.btn-primary:hover{transform:translateY(-1px);filter:brightness(1.1)}
+.btn-primary:disabled{opacity:.45;pointer-events:none}
+.btn-ghost{
+  border-radius:999px;
+  border:1.5px solid var(--line);
+  background:transparent;color:var(--accent-deep);
+  padding:9px 18px;min-height:44px;
+  transition:border-color .15s,color .15s
+}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost:disabled{opacity:.45;pointer-events:none}
+
+/* ── Сетка формы ─────────────────────────────────────────────────────── */
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:150px 1fr;gap:10px 16px;align-items:start}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+label.fl{color:var(--muted);font-size:13px;padding-top:10px}
+.prov{
+  display:inline-block;font-size:11px;color:var(--muted);
+  background:var(--chip);border-radius:20px;
+  padding:2px 9px;margin-left:8px;vertical-align:middle;white-space:nowrap
+}
+.tiny{font-size:12.5px;color:var(--muted)}
+
+/* ── Сообщения ───────────────────────────────────────────────────────── */
+.msg{border-radius:8px;padding:10px 14px;margin:8px 0;font-size:13.5px;border:1px solid;line-height:1.55}
+.msg.w{background:var(--warn-bg);border-color:var(--warn-border);color:var(--ink)}
+.msg.o{background:var(--ok-bg);border-color:var(--ok-border);color:var(--ink)}
+
+/* ── Pre / code ──────────────────────────────────────────────────────── */
+pre{
+  background:var(--chip);border:1px solid var(--line-light);
+  border-radius:10px;padding:14px;
+  overflow-x:auto;font-size:12.5px;font-family:var(--mono);
+  white-space:pre-wrap;word-break:break-word;color:var(--ink)
+}
+code{font-family:var(--mono);background:rgba(0,0,0,.07);padding:1px 5px;border-radius:4px}
+
+/* ── Numbered steps ─────────────────────────────────────────────────── */
+.steps{counter-reset:s;padding-left:0;list-style:none;margin:10px 0 0}
+.steps li{
+  counter-increment:s;margin:0 0 8px;
+  padding-left:32px;position:relative;font-size:13.5px;line-height:1.55
+}
+.steps li::before{
+  content:counter(s);position:absolute;left:0;top:0;
+  width:22px;height:22px;background:var(--sage-soft);color:var(--sage-deep);
+  border-radius:50%;text-align:center;font-size:12px;line-height:22px;font-weight:700
+}
+
+/* ── Details ─────────────────────────────────────────────────────────── */
+details summary{cursor:pointer;color:var(--accent-deep);font-size:13.5px}
+details summary:hover{color:var(--accent)}
+
+/* ── Статистика (массовый режим) ─────────────────────────────────────── */
+.stats{display:flex;gap:20px;flex-wrap:wrap;margin:12px 0;font-size:13.5px}
+.stats b{font-size:22px;display:block;line-height:1.2;color:var(--ink)}
+
+/* ── Таблица библиографии ────────────────────────────────────────────── */
+table.bib{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+table.bib th{
+  text-align:left;color:var(--muted);font-weight:600;font-size:12px;
+  border-bottom:2px solid var(--line);padding:7px 8px
+}
+table.bib td{border-bottom:1px solid var(--line-light);padding:7px 8px;vertical-align:top}
+table.bib tr.sec td{
+  background:var(--chip);font-weight:700;color:var(--accent-deep);font-size:12px
+}
+table.bib tr.pick{cursor:pointer}
+table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
+.st{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.st.ok{background:#3d6b3d}.st.check{background:#c49a2a}.st.fail{background:var(--warn)}
+
+/* ── Inline editor ───────────────────────────────────────────────────── */
+.edit{
+  background:rgba(255,255,255,.55);border:1.5px solid var(--line);
+  border-radius:12px;padding:16px;margin:8px 0
+}
+
+/* ── Схемы транслитерации: описание ─────────────────────────────────── */
+.scheme-desc{margin-top:10px;line-height:1.55}
+.scheme-desc p{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+.scheme-desc b{color:var(--ink)}
+
+/* ── Кнопка «Наверх» ─────────────────────────────────────────────────── */
+#back-to-top{
+  position:fixed;right:20px;bottom:24px;z-index:200;width:44px;height:44px;
+  border-radius:50%;background:rgba(43,38,32,.92);backdrop-filter:blur(8px);
+  border:1.5px solid rgba(227,185,105,.35);color:#f7f2e7;font-size:20px;line-height:1;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s,transform .18s;
+  box-shadow:0 3px 16px rgba(20,15,5,.45);-webkit-appearance:none;appearance:none
+}
+#back-to-top.visible{opacity:1;pointer-events:auto}
+#back-to-top:hover{transform:translateY(-2px)}
+
+/* ── SEO-блоки ───────────────────────────────────────────────────────── */
+.seo-blocks{margin-top:40px;display:grid;gap:18px}
+@media(min-width:600px){.seo-blocks{grid-template-columns:1fr 1fr}}
+.seo-block{
+  background:rgba(255,255,255,.42);border:1px solid var(--line-light);
+  border-radius:var(--radius);padding:18px 20px
+}
+.seo-block h2{font-weight:700;font-size:17px;margin-bottom:8px;color:var(--ink)}
+.seo-block p{font-size:14.5px;color:var(--muted);line-height:1.6}
+
+/* ── Тизер ───────────────────────────────────────────────────────────── */
+.teaser{
+  margin-top:40px;
+  background:linear-gradient(135deg,rgba(90,55,25,.82),rgba(120,70,35,.78));
+  border-radius:var(--radius-lg);padding:24px 26px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:18px;flex-wrap:wrap;box-shadow:0 10px 30px rgba(60,45,20,.2)
+}
+.teaser-links{flex-direction:column;gap:12px;align-items:stretch}
+.teaser-text .eyebrow{
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:#e0a380;font-weight:600;margin-bottom:8px
+}
+.teaser-text .tt{font-weight:700;font-size:17px;color:#f7f2e7;margin-bottom:4px}
+.teaser-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;width:100%}
+.tlink{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+  border-radius:10px;padding:14px 16px;text-decoration:none;
+  display:flex;flex-direction:column;gap:5px;transition:background .15s,transform .15s
+}
+.tlink:hover{background:rgba(255,255,255,.16);transform:translateY(-2px)}
+.tlink-title{font-size:13.5px;font-weight:700;color:#f7f2e7;line-height:1.3}
+.tlink-sub{font-size:12px;color:#b7ac98;line-height:1.35}
+.tlink-url{font-size:11px;color:#e0a380;font-family:var(--mono);margin-top:2px}
+
+/* ── Подвал ──────────────────────────────────────────────────────────── */
+.site-footer{
+  background:var(--hero-bg);margin-top:0;
+  padding:32px 22px;box-shadow:0 -4px 24px rgba(20,10,0,.14)
+}
+.footer-inner{
+  max-width:960px;margin:0 auto;display:flex;gap:20px;
+  justify-content:space-between;align-items:flex-end;flex-wrap:wrap
+}
+.footer-left p{margin:0 0 6px;font-size:13.5px;color:rgba(227,185,105,.55)}
+.footer-left a{color:var(--gold-bright);text-decoration:none;font-weight:600}
+.footer-left a:hover{text-decoration:underline}
+.footer-right{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end}
+.footer-right a{
+  color:var(--gold-bright);text-decoration:none;
+  font-size:13.5px;font-weight:600;
+  min-height:44px;display:inline-flex;align-items:center
+}
+.footer-right a:hover{text-decoration:underline}
+@media(max-width:480px){
+  .footer-inner{flex-direction:column;align-items:flex-start;gap:14px}
+}
+
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO BAND ═══ -->
+<div class="hero-band">
+  <img class="hero-art" src="HERO.png" alt="RefTidy">
+  <div class="lang-switch">
+    <button type="button" data-lang="ru" onclick="setLang('ru')">РУ</button>
+    <button type="button" data-lang="en" onclick="setLang('en')">EN</button>
+  </div>
+</div>
+
+<main>
+<div class="wrap">
+
+<header class="page-header">
+  <h1>
+    <span class="ru">Статья → Zotero</span>
+    <span class="en">Article → Zotero</span>
+  </h1>
+  <p class="sub">
+    <span class="ru">Собирает чистую библиографическую карточку из того, что у вас уже есть: заметки Obsidian, строки «Цитировать», ссылки или DOI. На выходе — файл <code>.ris</code>, который Zotero импортирует вместе с правильными авторами и годом.</span>
+    <span class="en">Builds a clean bibliographic record from what you already have: Obsidian notes, "Cite" strings, URLs, or DOIs. The output is a <code>.ris</code> file that Zotero imports with correct authors and year.</span>
+  </p>
+</header>
+
+<div class="tabs">
+  <button id="tabOne" class="on">
+    <span class="ru">Одна запись</span>
+    <span class="en">One entry</span>
+  </button>
+  <button id="tabMany">
+    <span class="ru">Список целиком</span>
+    <span class="en">Full list</span>
+  </button>
+</div>
+
+<!-- ═══ ПАНЕЛЬ: СПИСОК ═══ -->
+<div id="paneMany" class="card hidden">
+  <h2>
+    <span class="ru">Загрузить библиографию списком</span>
+    <span class="en">Load bibliography as a list</span>
+  </h2>
+  <p class="hint">
+    <span class="ru">Для случая, когда записей сотни: список литературы из диссертации, статьи или курсовой. Разбирает оформление по ГОСТ 7.1 — книги, статьи, главы в сборниках, диссертации, архивные дела. Заголовки разделов распознаются и переносятся в Zotero метками, так что структура списка не теряется.</span>
+    <span class="en">For when you have hundreds of entries: the reference list from a dissertation, article, or term paper. Parses GOST 7.1 formatting — books, articles, book chapters, dissertations, archival files. Section headings are recognised and transferred to Zotero as tags, so the list structure is preserved.</span>
+  </p>
+  <div id="dropMany">
+    <span class="ru">Перетащите сюда <b>.txt</b>, <b>.md</b> или <b>.docx</b> со списком<br><span class="tiny">или нажмите, чтобы выбрать файл</span></span>
+    <span class="en">Drop your <b>.txt</b>, <b>.md</b>, or <b>.docx</b> file here<br><span class="tiny">or click to choose a file</span></span>
+    <input type="file" id="fileMany" accept=".txt,.md,.markdown,.docx" class="hidden">
+  </div>
+  <p class="hint" style="margin-top:14px">
+    <span class="ru">Либо вставьте текст списка (в Word: выделить всё → копировать):</span>
+    <span class="en">Or paste the bibliography text (in Word: select all → copy):</span>
+  </p>
+  <textarea id="pasteMany" style="min-height:120px" placeholder="Гаврилов, Д.В. Горнозаводской Урал XVII – XX вв. / Д.В. Гаврилов. – Екатеринбург: УрО РАН, 2005. – 616 с."></textarea>
+  <div class="row" style="margin-top:12px">
+    <button id="btnMany" class="btn-primary">
+      <span class="ru">Разобрать список</span>
+      <span class="en">Parse list</span>
+    </button>
+    <span class="tiny" id="manyStatus"></span>
+  </div>
+
+  <div id="manyResult" class="hidden">
+    <div class="stats">
+      <div><b id="cntAll">0</b><span class="tiny"> <span class="ru">записей</span><span class="en">entries</span></span></div>
+      <div><b id="cntOk" style="color:#3d6b3d">0</b><span class="tiny"> <span class="ru">готовы</span><span class="en">ready</span></span></div>
+      <div><b id="cntCheck" style="color:#c49a2a">0</b><span class="tiny"> <span class="ru">проверить</span><span class="en">check</span></span></div>
+      <div><b id="cntFail" style="color:var(--warn)">0</b><span class="tiny"> <span class="ru">не разобрались</span><span class="en">failed</span></span></div>
+    </div>
+    <div class="row">
+      <label class="tiny"><input type="checkbox" id="onlyCheck"> <span class="ru">показать только требующие проверки</span><span class="en">show only entries that need review</span></label>
+    </div>
+    <div id="editBox"></div>
+    <div style="max-height:560px;overflow:auto;margin-top:8px">
+      <table class="bib"><thead><tr>
+        <th style="width:34px">№</th>
+        <th style="width:150px"><span class="ru">Авторы</span><span class="en">Authors</span></th>
+        <th><span class="ru">Заглавие</span><span class="en">Title</span></th>
+        <th style="width:52px"><span class="ru">Год</span><span class="en">Year</span></th>
+        <th style="width:64px"><span class="ru">Тип</span><span class="en">Type</span></th>
+      </tr></thead><tbody id="bibBody"></tbody></table>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <button id="btnRisAll" class="btn-primary">
+        <span class="ru">Скачать всё одним .ris</span>
+        <span class="en">Download all as .ris</span>
+      </button>
+      <button class="btn-ghost" id="btnRisOk">
+        <span class="ru">Только готовые</span>
+        <span class="en">Ready only</span>
+      </button>
+      <button class="btn-ghost" id="btnCopyAll">
+        <span class="ru">Копировать всё</span>
+        <span class="en">Copy all</span>
+      </button>
+    </div>
+    <div class="row" style="margin-top:10px;align-items:center">
+      <button class="btn-ghost" id="btnRisAllEn">
+        <span class="ru">Скачать для англоязычной статьи</span>
+        <span class="en">Download for English-language article</span>
+      </button>
+      <label class="tiny" style="display:flex;align-items:center;gap:5px">
+        <span class="ru">схема:</span><span class="en">scheme:</span>
+        <select id="tl_scheme2">
+          <option value="ala-lc">ALA-LC</option>
+          <option value="gost-b">ГОСТ 7.79-2000 (Б)</option>
+          <option value="bgn">BGN/PCGN</option>
+        </select>
+      </label>
+      <span class="tiny">
+        <span class="ru">кириллица романизируется, латинские записи уедут без изменений; подробно о схемах — во вкладке «Одна запись»</span>
+        <span class="en">Cyrillic is romanised, Latin entries pass through unchanged; details on schemes — in the "One entry" tab</span>
+      </span>
+    </div>
+    <p class="tiny" style="margin-top:10px">
+      <span class="ru">В Zotero: <i>Файл → Импорт…</i> → выбрать файл → «Поместить импортированные коллекции и элементы в новую коллекцию» — так вся библиография ляжет отдельной папкой, а разделы списка останутся метками.</span>
+      <span class="en">In Zotero: <i>File → Import…</i> → select the file → "Place imported collections and items in a new collection" — the full bibliography will go into a separate folder, and section headings will become tags.</span>
+    </p>
+  </div>
+</div>
+
+<!-- ═══ ПАНЕЛЬ: ОДНА ЗАПИСЬ ═══ -->
+<div id="paneOne"><div class="card">
+  <h2>
+    <span class="ru">1. Дайте источник</span>
+    <span class="en">1. Provide the source</span>
+  </h2>
+  <p class="hint">
+    <span class="ru">Любой из трёх способов — что под рукой. Самый точный результат даёт строка «Цитировать» с сайта.</span>
+    <span class="en">Use any of the three options — whichever you have available. The most accurate results come from the "Cite" string copied from the article page.</span>
+  </p>
+
+  <div id="drop">
+    <span class="ru">Перетащите сюда <b>.md</b>-заметку из Obsidian<br><span class="tiny">или нажмите, чтобы выбрать файл</span></span>
+    <span class="en">Drop your Obsidian <b>.md</b> note here<br><span class="tiny">or click to choose a file</span></span>
+    <input type="file" id="file" accept=".md,.markdown,.txt" class="hidden">
+  </div>
+
+  <p class="hint" style="margin-top:16px">
+    <span class="ru">Либо вставьте готовую ссылку на статью, DOI или строку цитирования (на КиберЛенинке — кнопка с кавычками «Цитировать», вкладка ГОСТ):</span>
+    <span class="en">Or paste a direct link to the article, a DOI, or a citation string (on CyberLeninka, use the "Cite" button ("Цитировать"), GOST tab):</span>
+  </p>
+  <textarea id="paste" placeholder="Лукина Н. П. Новые тенденции… // Гуманитарная информатика. 2015. №9. URL: https://cyberleninka.ru/article/n/… (дата обращения: 04.10.2026).&#10;&#10;или  10.17976/jpps/2016.02.06&#10;или  https://cyberleninka.ru/article/n/…"></textarea>
+  <div class="row" style="margin-top:12px">
+    <button id="btnPaste" class="btn-primary">
+      <span class="ru">Разобрать</span>
+      <span class="en">Parse</span>
+    </button>
+    <button class="btn-ghost" id="btnDemo">
+      <span class="ru">Показать на примере</span>
+      <span class="en">Show example</span>
+    </button>
+  </div>
+</div></div>
+
+<!-- ═══ РЕЗУЛЬТАТ ═══ -->
+<div id="result" class="hidden">
+
+  <div class="card">
+    <h2>
+      <span class="ru">2. Проверьте карточку</span>
+      <span class="en">2. Review the record</span>
+    </h2>
+    <p class="hint">
+      <span class="ru">Серая подпись у поля показывает, откуда взялось значение. Всё можно править руками — правка побеждает любой автоматический разбор.</span>
+      <span class="en">The grey label next to each field shows where the value came from. Everything is editable — manual edits override any automatic parsing.</span>
+    </p>
+    <div id="messages"></div>
+
+    <div class="grid">
+      <label class="fl">
+        <span class="ru">Тип</span>
+        <span class="en">Type</span>
+      </label>
+      <div>
+        <select id="f_type">
+          <option value="JOUR">Статья в журнале</option>
+          <option value="CPAPER">Доклад в сборнике конференции</option>
+          <option value="CHAP">Глава в книге</option>
+          <option value="BOOK">Книга</option>
+          <option value="THES">Диссертация</option>
+          <option value="ELEC">Электронный ресурс</option>
+        </select>
+      </div>
+
+      <label class="fl">
+        <span class="ru">Авторы</span><span class="en">Authors</span>
+        <span class="prov" id="p_authors"></span>
+      </label>
+      <div>
+        <textarea id="f_authors" style="min-height:62px" placeholder="Фамилия, И. О. — по одному автору в строке"></textarea>
+        <div class="tiny">
+          <span class="ru">По одному в строке, в виде «Фамилия, И. О.» или «Фамилия, Имя Отчество».</span>
+          <span class="en">One per line, as "Last, I. O." or "Last, First Patronymic".</span>
+        </div>
+      </div>
+
+      <label class="fl">
+        <span class="ru">Заглавие</span><span class="en">Title</span>
+        <span class="prov" id="p_title"></span>
+      </label>
+      <div><textarea id="f_title" style="min-height:52px"></textarea></div>
+
+      <label class="fl">
+        <span class="ru">Журнал / сборник</span><span class="en">Journal / volume</span>
+        <span class="prov" id="p_container"></span>
+      </label>
+      <div><input type="text" id="f_container"></div>
+
+      <label class="fl">
+        <span class="ru">Год</span><span class="en">Year</span>
+        <span class="prov" id="p_year"></span>
+      </label>
+      <div><input type="text" id="f_year" style="max-width:120px"></div>
+
+      <label class="fl">
+        <span class="ru">Том / Выпуск</span>
+        <span class="en">Vol. / Issue</span>
+      </label>
+      <div class="row">
+        <input type="text" id="f_volume" placeholder="том / vol." style="max-width:120px">
+        <input type="text" id="f_issue" placeholder="№ / issue" style="max-width:120px">
+        <input type="text" id="f_pages" placeholder="страницы / pages" style="max-width:160px">
+      </div>
+
+      <label class="fl">DOI<span class="prov" id="p_doi"></span></label>
+      <div><input type="text" id="f_doi" placeholder="10.…"></div>
+
+      <label class="fl">URL<span class="prov" id="p_url"></span></label>
+      <div><input type="text" id="f_url"></div>
+
+      <label class="fl">
+        <span class="ru">Ключевые слова</span>
+        <span class="en">Keywords</span>
+      </label>
+      <div><input type="text" id="f_keywords" placeholder="через запятую / comma-separated"></div>
+
+      <label class="fl">
+        <span class="ru">Аннотация</span>
+        <span class="en">Abstract</span>
+      </label>
+      <div><textarea id="f_abstract"></textarea></div>
+    </div>
+
+    <div class="row" style="margin-top:16px">
+      <button class="btn-ghost" id="btnCrossref">
+        <span class="ru">Уточнить по DOI (Crossref)</span>
+        <span class="en">Enrich by DOI (Crossref)</span>
+      </button>
+      <button class="btn-ghost" id="btnOpenAlex">
+        <span class="ru">Найти по названию (OpenAlex)</span>
+        <span class="en">Find by title (OpenAlex)</span>
+      </button>
+      <button class="btn-ghost" id="btnBiblio">
+        <span class="ru">Распознать описание (Crossref)</span>
+        <span class="en">Match citation string (Crossref)</span>
+      </button>
+      <span class="tiny" id="netStatus"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>
+      <span class="ru">3. Заберите в Zotero</span>
+      <span class="en">3. Import into Zotero</span>
+    </h2>
+    <p class="hint">
+      <span class="ru">Два равноправных пути — если в компьютерном классе сложности с папкой «Загрузки», берите второй.</span>
+      <span class="en">Two equivalent options — if the Downloads folder is inaccessible, use the second one.</span>
+    </p>
+    <div class="row">
+      <button id="btnRis" class="btn-primary">
+        <span class="ru">Скачать .ris</span>
+        <span class="en">Download .ris</span>
+      </button>
+      <button class="btn-ghost" id="btnCopy">
+        <span class="ru">Копировать RIS</span>
+        <span class="en">Copy RIS</span>
+      </button>
+      <button class="btn-ghost" id="btnMd">
+        <span class="ru">Скачать очищенный .md</span>
+        <span class="en">Download cleaned .md</span>
+      </button>
+    </div>
+    <ol class="steps">
+      <li>
+        <span class="ru"><b>Через файл:</b> «Скачать .ris» → в Zotero меню <i>Файл → Импорт…</i> → укажите скачанный файл.</span>
+        <span class="en"><b>Via file:</b> "Download .ris" → in Zotero menu <i>File → Import…</i> → select the downloaded file.</span>
+      </li>
+      <li>
+        <span class="ru"><b>Через буфер:</b> «Копировать RIS» → в Zotero меню <i>Файл → Импорт из буфера обмена</i>.</span>
+        <span class="en"><b>Via clipboard:</b> "Copy RIS" → in Zotero menu <i>File → Import from Clipboard</i>.</span>
+      </li>
+      <li>
+        <span class="ru">Перетащите свою <b>.md</b>-заметку мышкой на появившуюся в Zotero карточку — она прикрепится как вложение.</span>
+        <span class="en">Drag your <b>.md</b> note onto the newly created Zotero entry — it will attach as a file.</span>
+      </li>
+    </ol>
+    <details style="margin-top:12px">
+      <summary>
+        <span class="ru">Прикреплять заметку автоматически (необязательно)</span>
+        <span class="en">Attach note automatically (optional)</span>
+      </summary>
+      <p class="tiny" style="margin:8px 0">
+        <span class="ru">Браузер не знает, где на диске лежит ваш файл. Если указать путь к папке хранилища Obsidian, в RIS добавится ссылка на вложение, и Zotero прикрепит заметку сам.</span>
+        <span class="en">The browser doesn't know where your file is on disk. If you provide the path to your Obsidian vault folder, a file link will be added to the RIS and Zotero will attach the note automatically.</span>
+      </p>
+      <input type="text" id="f_vault" placeholder="C:\Users\…\Obsidian\Vault  или  /home/…/Vault">
+    </details>
+    <pre id="risOut" style="margin-top:16px"></pre>
+  </div>
+
+  <div class="card">
+    <h2>
+      <span class="ru">Для англоязычной статьи</span>
+      <span class="en">For an English-language article</span>
+    </h2>
+    <p class="hint">
+      <span class="ru">Необязательный блок — нужен, если этот источник пойдёт в список литературы статьи на английском: кириллицу там не принимают. Выгрузка отдельная, а не вместо обычной.</span>
+      <span class="en">Optional — needed only if this source will appear in an English-language reference list where Cyrillic is not accepted. This is a separate export, not a replacement for the regular one.</span>
+    </p>
+
+    <div class="row">
+      <label class="tiny">
+        <span class="ru">Схема:</span><span class="en">Scheme:</span>&nbsp;
+        <select id="tl_scheme">
+          <option value="ala-lc">ALA-LC — по умолчанию</option>
+          <option value="gost-b">ГОСТ 7.79-2000, система Б</option>
+          <option value="bgn">BGN/PCGN</option>
+        </select>
+      </label>
+      <label class="tiny">
+        <input type="checkbox" id="tl_strict">
+        <span class="ru"> строго по стандарту, с диакритикой и апострофами</span>
+        <span class="en"> strict standard, with diacritics and apostrophes</span>
+      </label>
+    </div>
+
+    <details style="margin-top:12px">
+      <summary>
+        <span class="ru">Какая схема для каких случаев</span>
+        <span class="en">Which scheme for which cases</span>
+      </summary>
+      <div class="scheme-desc tiny" style="margin:10px 0 0">
+        <p><b>ALA-LC</b> — <span class="ru">англоязычные гуманитарные журналы, университетские издательства, библиотечные каталоги. Берите её, если редакция не требует другого.</span><span class="en">English-language humanities journals, university presses, library catalogues. Use this if the journal does not specify otherwise.</span></p>
+        <p><b>ГОСТ 7.79-2000, система Б</b> — <span class="ru">блок <i>References</i> в российских журналах из Scopus и Web of Science.</span><span class="en">the <i>References</i> section in Russian journals indexed in Scopus and Web of Science.</span></p>
+        <p><b>BGN/PCGN</b> — <span class="ru">британские издательства, атласы, географические названия. Узнаётся по <i>Yekaterinburg</i>.</span><span class="en">British publishers, atlases, geographic names. Recognisable by <i>Yekaterinburg</i>.</span></p>
+        <p><span class="ru"><b>И главное:</b> схему нельзя менять посередине списка литературы. Одна фамилия в двух написаниях читается как два разных человека.</span><span class="en"><b>Important:</b> do not switch schemes mid-reference-list. The same surname in two spellings looks like two different people.</span></p>
+      </div>
+    </details>
+
+    <div class="grid" style="margin-top:16px">
+      <label class="fl">
+        <span class="ru">Перевод заглавия</span>
+        <span class="en">Title translation</span>
+      </label>
+      <div>
+        <textarea id="tl_entitle" style="min-height:52px" placeholder="English translation of the title"></textarea>
+        <div class="tiny">
+          <span class="ru">APA 7 требует после романизированного заглавия английский перевод в квадратных скобках. Оставите поле пустым — в примечании к записи останется напоминание.</span>
+          <span class="en">APA 7 requires an English translation in square brackets after the romanised title. Leave blank and a reminder will be added to the record note.</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint" style="margin-top:16px">
+      <span class="ru">Как это будет выглядеть в списке литературы — приблизительно, по APA 7:</span>
+      <span class="en">How this will look in a reference list — approximately, APA 7 style:</span>
+    </p>
+    <pre id="tlApa"></pre>
+    <details style="margin-top:8px">
+      <summary>
+        <span class="ru">Поля по отдельности</span>
+        <span class="en">Individual fields</span>
+      </summary>
+      <pre id="tlFields" style="margin-top:8px"></pre>
+    </details>
+
+    <div class="row" style="margin-top:16px">
+      <button id="btnRisEn" class="btn-primary">
+        <span class="ru">Скачать .ris (романизированный)</span>
+        <span class="en">Download .ris (romanised)</span>
+      </button>
+      <button class="btn-ghost" id="btnCopyEn">
+        <span class="ru">Копировать</span>
+        <span class="en">Copy</span>
+      </button>
+    </div>
+    <p class="tiny" style="margin-top:10px">
+      <span class="ru">Кириллический оригинал не теряется: он уходит в примечание к записи вместе с названием применённой схемы.</span>
+      <span class="en">The Cyrillic original is preserved: it is written to the record note together with the name of the romanisation scheme used.</span>
+    </p>
+  </div>
+
+</div><!-- /result -->
+
+<p class="tiny" style="margin-top:24px">
+  <span class="ru">Карточка собирается по слоям: фронтматтер заметки → строка цитирования → разбор страницы сайта → уточнение по DOI или названию. Данные берутся только из того, что вы дали; запросы к Crossref и OpenAlex выполняются, лишь когда вы нажимаете соответствующую кнопку.</span>
+  <span class="en">The record is built in layers: note frontmatter → citation string → page parsing → DOI or title lookup. Data is taken only from what you provide; Crossref and OpenAlex requests are made only when you click the corresponding button.</span>
+</p>
+
+<!-- ═══ SEO-БЛОКИ ═══ -->
+<div class="seo-blocks">
+  <div class="seo-block">
+    <h2>
+      <span class="ru">Для работы с КиберЛенинкой и eLibrary</span>
+      <span class="en">Works with CyberLeninka and eLibrary</span>
+    </h2>
+    <p>
+      <span class="ru">RefTidy распознаёт заметки Obsidian, сделанные клиппером с КиберЛенинки и eLibrary, — извлекает авторов, заглавие, журнал и год прямо из структуры страницы. Файл не покидает ваше устройство.</span>
+      <span class="en">RefTidy recognises Obsidian notes clipped from CyberLeninka and eLibrary, extracting authors, title, journal, and year directly from the page structure. Your file never leaves your device.</span>
+    </p>
+  </div>
+  <div class="seo-block">
+    <h2>
+      <span class="ru">Транслитерация для англоязычных статей</span>
+      <span class="en">Romanisation for English-language articles</span>
+    </h2>
+    <p>
+      <span class="ru">Три схемы транслитерации: ALA-LC (гуманитарные журналы), ГОСТ 7.79-2000 Б (российские журналы Scopus/WoS), BGN/PCGN (британские издательства). Кириллический оригинал сохраняется в примечании.</span>
+      <span class="en">Three romanisation schemes: ALA-LC (for humanities journals), GOST 7.79-2000 B (for Russian journals indexed in Scopus/WoS), and BGN/PCGN (used by many British publishers). The Cyrillic original is preserved in the record note.</span>
+    </p>
+  </div>
+</div>
+
+<!-- ═══ ТИЗЕР ═══ -->
+<div class="teaser teaser-links">
+  <div class="teaser-text">
+    <div class="eyebrow">
+      <span class="ru">другие проекты автора</span>
+      <span class="en">more from the author</span>
+    </div>
+  </div>
+  <div class="teaser-grid">
+    <a href="https://urbantransmission.org/" target="_blank" rel="noopener noreferrer" class="tlink">
+      <span class="tlink-title ru">Сайт автора</span>
+      <span class="tlink-title en">Author's website</span>
+      <span class="tlink-sub ru">История, исследования, публикации</span>
+      <span class="tlink-sub en">History, research, publications</span>
+      <span class="tlink-url">urbantransmission.org</span>
+    </a>
+    <a href="https://pdf.urbantransmission.org/" target="_blank" rel="noopener noreferrer" class="tlink">
+      <span class="tlink-title">TurnPDF</span>
+      <span class="tlink-sub ru">Повернуть страницы PDF — в браузере, без загрузки</span>
+      <span class="tlink-sub en">Rotate PDF pages in your browser — no upload required</span>
+      <span class="tlink-url">pdf.urbantransmission.org</span>
+    </a>
+    <a href="https://codebook.urbantransmission.org/" target="_blank" rel="noopener noreferrer" class="tlink">
+      <span class="tlink-title">Codebook &amp; Survey Tidier</span>
+      <span class="tlink-sub ru">Кодбук и очистка данных опроса для SPSS, jamovi</span>
+      <span class="tlink-sub en">Codebook and survey data cleaning for SPSS and jamovi</span>
+      <span class="tlink-url">codebook.urbantransmission.org</span>
+    </a>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+</main>
+
+<button id="back-to-top" aria-label="Наверх">↑</button>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <p>© 2026 <span class="ru">Анна Агафонова, к.и.н.</span><span class="en">Anna B. Agafonova, PhD</span> · <a href="https://urbantransmission.org" target="_blank" rel="noopener noreferrer">urbantransmission.org</a></p>
+      <p>
+        <span class="ru">Работает в браузере – данные остаются у вас.</span>
+        <span class="en">Runs entirely in your browser — your data never leaves your device.</span>
+      </p>
+    </div>
+    <div class="footer-right">
+      <a href="privacy.html">
+        <span class="ru">Политика ПД</span>
+        <span class="en">Privacy Policy</span>
+      </a>
+      <a href="terms.html">
+        <span class="ru">Условия использования</span>
+        <span class="en">Terms of Use</span>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* Код парсеров хранится в репозитории и используется в Node.js-тестах
+   и в вспомогательных файлах-примерах. Границы блока помечены, не удаляйте маркеры.
+   === PARSERS_START === */
+
+const RE_DOI = /\b10\.\d{4,9}\/[-._;()\/:A-Za-z0-9]+\b/;
+
+/* Отрезает список литературы: DOI и ссылки оттуда принадлежат чужим работам. */
+function splitBibliography(text){
+  const markers = [
+    /\n\s*#{1,6}\s*(СПИСОК\s+ЛИТЕРАТУРЫ|Список\s+литературы|ЛИТЕРАТУРА|Литература|БИБЛИОГРАФИЯ|References)/,
+    /\n\s*(СПИСОК\s+ЛИТЕРАТУРЫ|СПИСОК\s+ИСТОЧНИКОВ)\s*:?\s*\n/,
+    /\n\s*СПИСОК\s+ЛИТЕРАТУРЫ/,
+    /\n\|\s*1\.\s*\|/,            // eLibrary: нумерованная таблица ссылок
+    /\n\s*1\.\s+[А-ЯЁA-Z][^\n]{25,}\n\s*2\.\s+/  // обычный нумерованный список
+  ];
+  let cut = text.length;
+  for (const m of markers){
+    const hit = text.search(m);
+    if (hit > 200 && hit < cut) cut = hit;
+  }
+  return { head: text.slice(0, cut), tail: text.slice(cut) };
+}
+
+/* Блок «СЕССИЯ» на eLibrary содержит логин, SPIN-код и IP пользователя. */
+function stripElibrarySession(text){
+  const re = /\*\*СЕССИЯ\*\*[\s\S]*?(?=\*\*КОНТАКТЫ\*\*|\*\*ИНФОРМАЦИЯ О ПУБЛИКАЦИИ\*\*|$)/;
+  if (!re.test(text)) return { text, removed:false };
+  return { text: text.replace(re, ''), removed:true };
+}
+
+/* Свойства заметки. Значение бывает трёх видов:
+     key: значение                 — обычный текст
+     key: [a, b]                   — список в строку
+     key:                          — список блоком, как его пишет Obsidian
+       - a                           для свойств типа «Список» (в экспорте
+       - b                           шаблона этот тип называется multitext) */
+function parseFrontmatter(text){
+  const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text);
+  if (!m) return { data:{}, body:text };
+  const data = {};
+  const unquote = x => String(x).trim().replace(/^["']|["']$/g,'');
+  let pending = null;                       // ключ, под которым ждём строки «- …»
+  for (const line of m[1].split(/\r?\n/)){
+    const item = /^\s+-\s+(.*)$/.exec(line);
+    if (item && pending){
+      const v = unquote(item[1]);
+      if (v){ (data[pending] = data[pending] || []).push(v); }
+      continue;
+    }
+    const kv = /^([A-Za-z0-9_\-]+)\s*:\s*(.*)$/.exec(line);
+    if (!kv){ pending = null; continue; }
+    const key = kv[1].toLowerCase();
+    let v = unquote(kv[2]);
+    if (v === ''){ pending = key; continue; }   // возможно, дальше пойдёт список
+    pending = null;
+    if (v.startsWith('[') && v.endsWith(']')){
+      v = v.slice(1,-1).split(',').map(unquote).filter(Boolean);
+    }
+    if (v !== '' && v.length !== 0) data[key] = v;
+  }
+  for (const k in data) if (Array.isArray(data[k]) && !data[k].length) delete data[k];
+  return { data, body: text.slice(m[0].length) };
+}
+
+/* Запасной канал для метаданных: блок «ключ: значение» в начале самой заметки.
+   Нужен потому, что свойства заметки (фронтматтер) доходят не всегда — Obsidian
+   умеет потерять их при создании файла, и тогда в заметке остаётся только текст
+   страницы, где адреса самой статьи нет: на КиберЛенинке все ссылки ведут
+   на похожие работы. Текст заметки доходит всегда, поэтому шаблон клиппера
+   может продублировать выходные данные туда. Фронтматтер, если он есть, главнее. */
+const INLINE_KEYS = ['source','canonical','url','title','authors','author','journal',
+  'year','published','volume','issue','firstpage','lastpage','pages','doi','issn',
+  'publisher','keywords'];
+
+function parseInlineMeta(body){
+  const lines = String(body).split(/\r?\n/).slice(0, 40);
+  const data = {};
+  let hits = 0;
+  for (const raw of lines){
+    const line = raw.replace(/^\s*>\s?/, '').replace(/^\s*[-*]\s+/, '').trim();
+    if (!line) continue;
+    const kv = /^\*{0,2}([A-Za-z_][A-Za-z0-9_\-]*)\*{0,2}\s*:\s*(.*)$/.exec(line);
+    if (!kv) continue;
+    const key = kv[1].toLowerCase();
+    if (INLINE_KEYS.indexOf(key) === -1) continue;
+    hits++;
+    const v = kv[2].trim().replace(/^["']|["']$/g, '');
+    if (v) data[key] = v;
+  }
+  // одна случайная строка вида «Журнал: …» блоком не считается
+  return hits >= 3 ? data : {};
+}
+
+function detectSource(text){
+  if (/cyberleninka\.ru/.test(text) || /Текст научной статьи по специальности/.test(text)) return 'cyberleninka';
+  if (/elibrary\.ru/.test(text) || /ИНФОРМАЦИЯ О ПУБЛИКАЦИИ/.test(text)) return 'elibrary';
+  return 'unknown';
+}
+
+/* «Слободская Анастасия Валерьевна» | «Лукина Н. П.» | «ОМАРОВ М.О.» → {family, given} */
+function normalizeAuthor(raw){
+  let s = String(raw).replace(/<[^>]+>/g,'').replace(/\*\*/g,'').replace(/\s+/g,' ').trim();
+  s = s.replace(/^[,;]+/,'').replace(/[,;]+$/,'').trim();
+  // точку в конце убираем, только если это не инициал: «Лукина Н. П.» должно уцелеть
+  if (/\.$/.test(s) && !/[А-ЯЁA-Z]\.$/.test(s)) s = s.replace(/\.+$/,'').trim();
+  if (!s) return null;
+  if (s.includes(',')){
+    const [fam, rest] = s.split(',');
+    return { family: titleCaseName(fam.trim()), given:(rest||'').trim() };
+  }
+  const initials = new RegExp('^([А-ЯЁA-Z][А-ЯЁа-яёA-Za-z\\-\']+)\\s+(' + INITS + ')$').exec(s);
+  if (initials) return { family: titleCaseName(initials[1]), given: initials[2].replace(/\s+/g,' ').trim() };
+  const parts = s.split(' ').filter(Boolean);
+  if (parts.length >= 2) return { family: titleCaseName(parts[0]), given: parts.slice(1).map(titleCaseName).join(' ') };
+  return { family: titleCaseName(s), given:'' };
+}
+
+/* ОМАРОВ → Омаров, но И.О. и дефисные фамилии не ломаем */
+function titleCaseName(w){
+  if (!/[а-яё]/.test(w) && w.length > 1){
+    return w.split('-').map(p => p.charAt(0) + p.slice(1).toLowerCase()).join('-');
+  }
+  return w;
+}
+
+function authorsToString(list){
+  return (list||[]).map(a => a.given ? a.family + ', ' + a.given : a.family).join('\n');
+}
+function authorsFromString(s){
+  return String(s||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(normalizeAuthor).filter(Boolean);
+}
+
+/* --------------------------- КиберЛенинка --------------------------- */
+function parseCyberleninka(full){
+  const rec = { type:'JOUR', provenance:{}, warnings:[] };
+  const { head } = splitBibliography(full);
+  const P = f => rec.provenance[f] = 'страница КиберЛенинки';
+
+  const t = /^#{1,6}\s*(.+?)\s+Текст научной статьи по специальности\s*«([^»]*)»/m.exec(head);
+  if (t){ rec.title = t[1].trim(); P('title'); if (t[2]) rec.subject = t[2].trim(); }
+
+  const j = /(?:^|\n)\s*Журнал\s*\n+\s*\[([^\]]+)\]\(([^)]+)\)/.exec(head);
+  if (j){ rec.container = j[1].trim(); P('container'); rec.journalUrl = j[2]; }
+
+  if (j){
+    const after = head.slice(head.indexOf(j[0]) + j[0].length, head.indexOf(j[0]) + j[0].length + 160);
+    const y = /\b(1[89]\d{2}|20\d{2})\b/.exec(after);
+    if (y){ rec.year = y[1]; P('year'); }
+  }
+
+  const a = /автор(?:ы)? научной работы\s*[—–-]\s*(.+?)\s*$/m.exec(head);
+  if (a){
+    rec.authors = a[1].split(/,(?![^(]*\))/).map(s=>s.trim()).filter(Boolean).map(normalizeAuthor).filter(Boolean);
+    P('authors');
+  }
+
+  if (a){
+    const idx = head.indexOf(a[0]) + a[0].length;
+    const chunk = head.slice(idx, idx + 2500);
+    const para = chunk.split(/\n\s*\n/).map(s=>s.trim()).filter(s =>
+      s.length > 120 && !/^[#|*\[]/.test(s) && !/Надоели баннеры/.test(s));
+    if (para.length) rec.abstract = para[0].replace(/\s+/g,' ');
+  }
+
+  const own = new RegExp('https?://cyberleninka\\.ru/article/n/[a-z0-9-]+');
+  const slug = own.exec(head);
+  if (slug && rec.title){
+    rec.warnings.push('В заметке нет адреса самой статьи — ссылки в тексте ведут на похожие работы. Надёжнее вставить строку «Цитировать» с сайта: в ней есть канонический URL и номер выпуска.');
+  }
+  if (/Ключевые слова\s*\n+\s*\*\/[\s\/]*\*/.test(head)){
+    rec.warnings.push('Ключевые слова на странице КиберЛенинки выведены пустыми — в клипе их нет. Заполните вручную, если нужны.');
+  }
+  if (/[А-Яа-я]\d|\d[А-Яа-я]/.test(head.slice(0,4000)) && /Адрес статьи/.test(head)){
+    rec.warnings.push('Поле «Адрес статьи» в тексте статьи повреждено (латиница подменена кириллицей при распознавании PDF) — оно не используется.');
+  }
+  return rec;
+}
+
+/* ------------------------------ eLibrary ------------------------------ */
+function parseElibrary(full){
+  const rec = { type:'JOUR', provenance:{}, warnings:[] };
+  const P = f => rec.provenance[f] = 'страница eLibrary';
+
+  const cleaned = stripElibrarySession(full);
+  if (cleaned.removed){
+    rec.warnings.push('Из заметки удалён блок «СЕССИЯ»: в нём были ваш логин, SPIN-код и IP-адрес. В карточку и в очищенный файл они не попадут.');
+  }
+  let text = cleaned.text;
+  const start = text.indexOf('ИНФОРМАЦИЯ О ПУБЛИКАЦИИ');
+  // срезаем ровно по концу строки-заголовка: иначе остаётся висячая «**»,
+  // которая склеивается со следующей и ломает разбор жирных фрагментов
+  if (start > -1) text = text.slice(start).replace(/^[^\n]*\n/, '');
+  const { head } = splitBibliography(text);
+
+  const id = /eLIBRARY ID:\s*\[?(\d+)\]?/.exec(head);
+  if (id){ rec.elibraryId = id[1]; rec.url = 'https://www.elibrary.ru/item.asp?id=' + id[1]; rec.provenance.url = 'страница eLibrary'; }
+  const edn = /EDN:\s*\[?([A-Z]{6})\]?/.exec(head);
+  if (edn) rec.edn = edn[1];
+
+  const rows = head.match(/\|\s*\|\s*\*\*([\s\S]*?)\*\*\s*\|/g) || [];
+  if (rows.length){
+    const tm = /\|\s*\|\s*\*\*([\s\S]*?)\*\*\s*\|/.exec(rows[0]);
+    if (tm){
+      rec.title = tm[1].replace(/\s+/g,' ').trim();
+      if (rec.title === rec.title.toUpperCase() && /[А-ЯЁ]/.test(rec.title)){
+        rec.title = rec.title.charAt(0) + rec.title.slice(1).toLowerCase();
+        rec.warnings.push('eLibrary хранит заглавие капслоком. Регистр восстановлен автоматически — проверьте имена собственные и аббревиатуры.');
+      }
+      P('title');
+    }
+  }
+
+  /* Автор на eLibrary — «ФАМИЛИЯ И.О.» капслоком. Заглавие тоже выделено
+     жирным, поэтому отбираем только то, что похоже на имя с инициалами,
+     и обрезаем всё после «Научный руководитель». */
+  const supervisorIdx = head.search(/Научный руководитель/);
+  const personRe = /^[А-ЯЁA-Z][А-ЯЁA-Z\-\s]*?\s[А-ЯЁA-Z]\.\s*[А-ЯЁA-Z]?\.?$/;
+  const region = head.slice(0, supervisorIdx > -1 ? supervisorIdx : head.length);
+  const bolds = (region.match(/\*\*([^*\n]+)\*\*/g) || [])
+    .map(b => b.replace(/\*\*/g,'').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim());
+  const people = bolds.filter(b => personRe.test(b));
+  if (people.length){
+    rec.authors = people.map(normalizeAuthor).filter(Boolean);
+    P('authors');
+  }
+  if (supervisorIdx > -1){
+    const sup = /Научный руководитель:\s*([^<|\n]+)/.exec(head);
+    rec.warnings.push('В заметке указан научный руководитель' +
+      (sup ? ' (' + sup[1].replace(/<[^>]*>/g,'').trim() + ')' : '') +
+      ' — в авторы он не включён. Это намеренно: научрук не является автором публикации.');
+  }
+
+  const meta = /Тип:\s*([^\n]*?)\s*Язык:\s*(\S+)\s*Год издания:\s*(\d{4})(?:\s*Страницы:\s*([\d\-–]+))?/.exec(head);
+  if (meta){
+    const kind = meta[1].toLowerCase();
+    rec.type = /конференц/.test(kind) ? 'CPAPER' : /журнал/.test(kind) ? 'JOUR' : /глав|книг/.test(kind) ? 'CHAP' : 'JOUR';
+    rec.lang = meta[2];
+    rec.year = meta[3]; P('year');
+    if (meta[4]){ rec.pages = meta[4]; }
+  }
+
+  const src = /ИСТОЧНИК:[\s\S]*?<a[^>]*>([^<]+)<\/a>([\s\S]*?)<\/td>/.exec(head);
+  if (src){
+    rec.container = src[1].replace(/\s+/g,' ').trim();
+    if (rec.container === rec.container.toUpperCase()){
+      rec.container = rec.container.charAt(0) + rec.container.slice(1).toLowerCase();
+    }
+    P('container');
+    const pub = /Издательство:\s*(?:<[^>]*>)*([^<]+)/.exec(src[2]);
+    if (pub) rec.publisher = pub[1].replace(/\s+/g,' ').trim();
+  }
+
+  /* Берём весь блок таблицы до </table> и собираем из него ссылки:
+     структура ячеек у eLibrary плавает от записи к записи. */
+  const kwBlock = /КЛЮЧЕВЫЕ СЛОВА:([\s\S]*?)<\/table>/.exec(head);
+  if (kwBlock){
+    const list = (kwBlock[1].match(/<a[^>]*>([^<]+)<\/a>/g) || [])
+      .map(x => x.replace(/<[^>]*>/g,'').trim()).filter(Boolean);
+    if (list.length){
+      rec.keywords = list.map(w => (w === w.toUpperCase() && /[А-ЯЁ]/.test(w))
+        ? w.charAt(0) + w.slice(1).toLowerCase() : w);
+    }
+  }
+
+  const abBlock = /АННОТАЦИЯ:([\s\S]*?)<\/table>/.exec(head);
+  if (abBlock){
+    const paras = (abBlock[1].match(/<p[^>]*>([\s\S]*?)<\/p>/g) || [])
+      .map(p => p.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim()).filter(Boolean);
+    if (paras.length) rec.abstract = paras[0];   // первый абзац — русский
+  }
+
+  const doiHead = RE_DOI.exec(head);
+  if (doiHead){ rec.doi = doiHead[0]; rec.provenance.doi = 'страница eLibrary'; }
+  else if (RE_DOI.test(full)){
+    rec.warnings.push('DOI найден только в списке литературы — он принадлежит процитированной работе, а не этой. В карточку не записан.');
+  }
+  return rec;
+}
+
+
+/* ===================== ГОСТ 7.1: разбор записей =====================
+   Книги, статьи, главы, диссертации, архивные дела, газетные комплекты.
+   Проверено на библиографии диссертации: 457 записей, 95% без вопросов. */
+
+/* Инициалы: одиночные «Э.» и составные через дефис — «F.-J.», «Ж.-П. Сартр».
+   Без второй половины «F.-J. The Ruhr Basin…» разбиралось как автор «F.»
+   и заглавие «-J. The Ruhr Basin…». */
+const INIT = '[А-ЯЁA-Z]\\.(?:\\s*[-\u2010\u2011\u2013\u2014]\\s*[А-ЯЁA-Z]\\.)?';
+const INITS = '(?:' + INIT + '\\s*){1,3}';
+
+/* Автор, записанный полностью: «Слободская Анастасия Валерьевна».
+   КиберЛенинка отдаёт и так, и «Фамилия И. О.» — зависит от того, что
+   прислал журнал. Опознаём по отчеству: без этого требования «Город Валдай
+   и его уезд» разберётся как автор «Город Валдай и». */
+const PATRONYMIC = '[А-ЯЁ][а-яё]*(?:ович|евич|ьич|инич|иевич|овна|евна|ична|инична|иевна)';
+const FULLNAME = '([А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?)\\s+([А-ЯЁ][а-яё]+)\\s+(' + PATRONYMIC + ')';
+const PLACE_RE = '[А-ЯЁA-Z][А-Яа-яЁёA-Za-z.\\-]*(?:[ ][А-ЯЁA-Zа-яёa-z.\\-]+){0,2}';
+const DASH = /[–—−-]/g;                 // все виды тире к одному виду
+const norm = s => String(s).replace(/ /g,' ').replace(/\s+/g,' ').trim();
+const dashNorm = s => s.replace(DASH, '-');
+
+/* Заголовок раздела: короткая строка без выходных данных */
+function isSectionHeader(line){
+  const s = norm(line);
+  if (!s) return false;
+  if (s.length > 85) return false;
+  if (/\d{4}/.test(s) && !/^Литература на/.test(s)) return false;
+  if (/[.;]$/.test(s) && !/:$/.test(s)) return false;
+  if (/\s\/\s|\/\/|\sс\.$|\sp\.$/.test(s)) return false;
+  // приметы обычной записи, а не заголовка раздела
+  if (/https?:|\[|«|Режим доступа|№/.test(s)) return false;
+  return s.split(/\s+/).length <= 9;
+}
+
+/* Архивное дело: «Ф. 29. Название фонда. Оп. 2. Д. 9, Д. 11;» */
+function parseArchival(line, archive){
+  const s = norm(line);
+  const m = /^Ф\.\s*(\d+)\.?\s*(.*)$/.exec(s);
+  if (!m) return null;
+  const rest = m[2];
+  const fondName = (/^([^.]*?)\.\s*Оп/.exec(rest) || [,''])[1].trim();
+  const opisi = [];
+  const re = /Оп\.\s*(\d+)\.\s*((?:Д\.\s*\d+[,;\s]*)+)/g;
+  let x;
+  while ((x = re.exec(rest))){
+    const dela = (x[2].match(/\d+/g) || []);
+    opisi.push({ op: x[1], dela });
+  }
+  return {
+    type: 'MANSCPT',
+    title: fondName ? ('Ф. ' + m[1] + '. ' + fondName) : ('Ф. ' + m[1]),
+    archive: archive || '',
+    archiveLocation: 'Ф. ' + m[1] +
+      (opisi.length ? '. ' + opisi.map(o => 'Оп. ' + o.op + '. Д. ' + o.dela.join(', ')).join('; ') : ''),
+    itemCount: opisi.reduce((n,o) => n + o.dela.length, 0),
+    raw: s,
+    provenance: { title:'архивная запись' },
+    confidence: fondName ? 'ok' : 'check'
+  };
+}
+
+/* Авторы из области ответственности: «И.О. Фамилия, И.О. Фамилия» */
+function authorsFromResponsibility(part){
+  if (!part) return { authors: [], editors: [] };
+  const authors = [], editors = [];
+  let s = norm(part);
+
+  // редакторы / составители идут после отдельных маркеров
+  const MARK = /(?:под\s+общ\.\s*ред\.|под\s+ред\.|отв\.\s*ред\.|Сост\.|сост\.|составитель|compiled\s+by|edited\s+by|ред\.|пер\.\s*с\s*[^\s.]+|перевод|translated\s+by)/i;
+  const edSplit = s.split(MARK);
+  const authorPart = edSplit[0];
+  const editorPart = edSplit.slice(1).join(' ');
+  const isTranslator = /пер\.\s*с\s*[^\s.]+|перевод|translated\s+by/i.test(s);
+  const isCompiler = /Сост\.|сост\.|составитель|compiled\s+by/i.test(s);
+
+  const reInit = new RegExp('(' + INITS + ')\\s*([А-ЯЁA-Z][а-яёa-z\\-\']+)', 'g');
+  let m;
+  while ((m = reInit.exec(authorPart))){
+    authors.push({ family: m[2], given: norm(m[1]) });
+  }
+  // «Виноградов Андрей Владиславович» — полное имя в диссертациях
+  if (!authors.length){
+    const full = /([А-ЯЁ][а-яё\-]+)\s+([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+)?)/.exec(authorPart);
+    if (full) authors.push({ family: full[1], given: full[2] });
+  }
+  while ((m = reInit.exec(editorPart))){
+    editors.push({ family: m[2], given: norm(m[1]) });
+  }
+  return { authors, editors, isTranslator, isCompiler };
+}
+
+function parseGost(raw, ctx){
+  ctx = ctx || {};
+  let s = norm(raw).replace(/[;]+$/,'');
+  if (!s) return null;
+
+  if (/^Ф\.\s*\d+/.test(s)) return parseArchival(s, ctx.archive);
+
+  const rec = { type:'BOOK', provenance:{}, warnings:[], confidence:'ok', raw:s };
+  const P = f => rec.provenance[f] = 'строка ГОСТ';
+
+  // газетный комплект: «Газета «Вологодская жизнь» за 1908, 1909 гг.»
+  const paper = /^Газет[аы]\s*«([^»]+)»\s*за\s*([\d,\s]+)\s*гг?\./.exec(s);
+  if (paper){
+    rec.type = 'NEWS'; rec.container = paper[1]; rec.title = 'Комплект за ' + norm(paper[2]) + ' гг.';
+    rec.year = (paper[2].match(/\d{4}/) || [''])[0];
+    P('title'); P('container'); P('year');
+    rec.warnings.push('Это комплект газеты за несколько лет, а не отдельная публикация. В Zotero заводится одной записью.');
+    return rec;
+  }
+
+  // URL / электронный ресурс
+  const url = /(https?:\/\/[^\s)]+)/.exec(s);
+  if (url){ rec.url = url[1].replace(/[.,;]+$/,''); P('url'); s = s.replace(url[0],' '); }
+  if (/\[Электронный ресурс\]/i.test(s)){ rec.type = 'ELEC'; s = s.replace(/\[Электронный ресурс\]/ig,' '); }
+  // хвост строки «Цитировать»: сам адрес уже вынут выше, остались ярлык и дата
+  s = norm(s.replace(/Режим доступа:\s*/i,' ')
+            .replace(/\(\s*(?:дата обращения|дата доступа|accessed)[^)]*\)/ig,' ')
+            .replace(/\bURL\s*:\s*/ig,' '));
+
+  /* Каталожная запись несёт служебные сведения, которых в ссылке быть не должно:
+     вид содержания «[Текст]», сведения об иллюстрациях «: ил.», размер «; 27 см».
+     Серия и ISBN — наоборот, полезны, но у них свои поля, а не заглавие. */
+  const isbn = /ISBN\s*([\dXx\-]{10,17})/.exec(s);
+  if (isbn){ rec.isbn = isbn[1]; s = s.replace(isbn[0], ' '); }
+
+  const series = /[–—−-]\s*\(([^)]{3,120})\)\s*\.?/.exec(s);
+  if (series){ rec.series = norm(series[1]); s = s.replace(series[0], ' '); }
+
+  s = norm(s
+    .replace(/\[\s*(?:Текст|Изображение|Электронный ресурс|Мультимедиа|Ноты|Карты)\s*\]/ig, ' ')
+    .replace(/\s*:\s*\[[^\]]{3,40}\]/g, ' ')
+    .replace(/\s*:\s*(?:ил\.|портр\.|карт\.|табл\.|схем\.|черт\.|факс\.)(?:\s*,\s*(?:ил\.|портр\.|карт\.|табл\.|схем\.|черт\.|факс\.))*/ig, ' ')
+    .replace(/\s*;\s*\d{1,3}\s*(?:см|мм)(?![а-яё])\.?/ig, ' ')
+    .replace(/\s*[;.,]\s*$/,''));
+
+  // объём: «– 616 с.» / «– 314 p.»
+  const vol = /[–—−-]\s*(\d+)\s*(с|p|pp)\.?\s*$/i.exec(s);
+  if (vol){ rec.numPages = vol[1]; s = norm(s.slice(0, vol.index)); }
+
+  // страницы: «С. 46 – 48» / «P. 1757 – 1769»
+  const pg = /(?:^|[.–—−-]\s*)(?:С|P|Pp|с)\.\s*(\d+)\s*(?:[–—−-]\s*(\d+))?\s*\.?\s*$/.exec(s);
+  if (pg){
+    rec.pages = pg[2] ? pg[1] + '-' + pg[2] : pg[1];
+    s = norm(s.slice(0, pg.index));
+  }
+
+  // диссертация / автореферат
+  if (/дис(?:c)?\.|автореф/i.test(s)){
+    rec.type = 'THES';
+    const deg = /((?:автореф\.\s*)?дис(?:c)?\.\s*[…\.\s]*(?:канд|докт|д-ра)[^\/]*)/i.exec(s);
+    if (deg) rec.degree = norm(deg[1]).replace(/[:.]\s*$/,'');
+  }
+
+  // область ответственности: первый « / » после начала
+  let responsibility = '';
+  const slash = s.indexOf(' / ');
+  if (slash > -1){
+    const after = s.slice(slash + 3);
+    const stop = after.search(/\s\/\/\s|\s[–—−-]\s/);
+    responsibility = stop > -1 ? after.slice(0, stop) : after;
+    s = norm(s.slice(0, slash) + ' ' + (stop > -1 ? after.slice(stop) : ''));
+  }
+
+  // источник: « // Журнал/Сборник »
+  var containerPart = '';
+  const dbl = s.indexOf('//');
+  if (dbl > -1){
+    containerPart = norm(s.slice(dbl + 2));
+    s = norm(s.slice(0, dbl));
+    rec.type = rec.type === 'THES' ? 'THES' : 'JOUR';
+  }
+
+  // автор в начале записи: «Гаврилов, Д.В. » или «Гаврилов Д.В. »
+  /* Каталоги повторяют в заголовке всех авторов, а не только первого:
+     «Шабунова А. А., Соловьева Т. С. (канд. социол. наук), Ласточкина М. А. Заглавие…».
+     Берём всех подряд, иначе остаток уезжает в заглавие.
+     Скобки после имени — идентифицирующий признак по ГОСТ 7.80-2000 (п. 5.13):
+     каталогизатор различает тёзок по степени, званию или годам жизни. */
+  const QUALIFIER = '(?:\\s*\\([^)]{2,60}\\))?';
+  const reHeadInit = new RegExp('^([А-ЯЁA-Z][а-яёa-z\\-\']+)\\s*,?\\s*(' + INITS + ')' + QUALIFIER + '(?![-\u2010\u2013\u2014])\\s*');
+  const reHeadFull = new RegExp('^([А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?)\\s*,\\s*([А-ЯЁ][а-яё]+)\\s+(' + PATRONYMIC + ')' + QUALIFIER + '\\s*\\.?(?![-\u2010\u2013\u2014])\\s*');
+  const headAuthors = [];
+  let guardHead = 0;
+  while (guardHead++ < 8){
+    const mi = reHeadInit.exec(s);
+    if (mi){
+      headAuthors.push({ family: mi[1], given: norm(mi[2]) });
+      s = norm(s.slice(mi[0].length)).replace(/^[,;]\s*/,'');
+      continue;
+    }
+    const mf = reHeadFull.exec(s);
+    if (mf && !headAuthors.length){      // «Фамилия, Имя Отчество.» бывает только первой
+      headAuthors.push({ family: mf[1], given: norm(mf[2] + ' ' + mf[3]) });
+      s = norm(s.slice(mf[0].length)).replace(/^[,;]\s*/,'');
+      continue;
+    }
+    break;
+  }
+  const head = headAuthors.length ? true : null;
+  if (head){
+    rec.authors = headAuthors;
+    P('authors');
+  } else {
+    // криптоним: «А.В. Белозерск / А.В.» — подпись инициалами, как в словаре Брокгауза
+    const crypt = /^([А-ЯЁ]\.\s*[А-ЯЁ]\.)\s+(.+)$/.exec(s);
+    if (crypt && responsibility && /^[А-ЯЁ]\.\s*[А-ЯЁ]\.\s*$/.test(norm(responsibility))){
+      rec.authors = [{ family: norm(crypt[1]), given: '' }];
+      rec.cryptonym = true;
+      P('authors');
+      s = norm(crypt[2]);
+    }
+  }
+
+  rec.title = norm(s).replace(/\s*[.,–—−-]+\s*$/,'');
+
+  /* Выходные данные могли прилипнуть к заглавию: «…с объяснениями. СПб.: Хоз. деп. М.В.Д., 1870».
+     Место — это одно-три слова («СПб.», «Санкт-Петербург», «Ленинград – Москва»),
+     издательство — без двоеточий и тире. Без такой строгости «Демография: Учебник»
+     разбирается как «место: Демография», и заглавие исчезает целиком. */
+  const PLACE = '[А-ЯЁA-Z][А-Яа-яЁёA-Za-z.\\-]*(?:[ ][А-ЯЁA-Zа-яёa-z.\\-]+){0,2}';
+  /* Сначала ищем выходные данные в конце заглавия, и только если там их нет —
+     где угодно внутри: у многотомника после них идут ещё сведения о томе
+     («… Ныркина, 1906 - 1914. - 2 т. Т. 1: …»), и якорь на конец не срабатывал.
+     Тире перед местом издания бывает и без пробела: «…испр., доп.– СПб.: …».
+     Но просто «любое тире» брать нельзя: дефис внутри «Санкт-Петербург»
+     превратил бы место издания в «Петербург». */
+  const LEAD = '(?:^|[.,]\\s+|\\s[–—−-]\\s*|[.,]\\s*[–—−-]\\s*)';
+  // у комплекта год издания бывает диапазоном: «, 1906 - 1914» — забираем его целиком,
+  // иначе второй год остаётся висеть в заглавии
+  const YEAR = '(?:1[5-9]\\d{2}|20\\d{2})';
+  const IMPR = '(' + PLACE + ')\\s*:\\s*([^,:–—−]{2,60}),\\s*(' + YEAR + ')(?:\\s*[–—−-]\\s*' + YEAR + ')?';
+  const glued = new RegExp(LEAD + IMPR + '\\s*\\.?\\s*$').exec(rec.title)
+             || new RegExp(LEAD + IMPR).exec(rec.title);
+  let afterImprint = '';
+  if (glued){
+    const kept = norm(rec.title.slice(0, glued.index)).replace(/\s*[.,–—−-]+\s*$/,'');
+    if (kept){                       // не срезаем, если от заглавия ничего не останется
+      rec.place = norm(glued[1]).replace(/^[–—−-]\s*/,'');
+      rec.publisher = norm(glued[2]);
+      rec.year = glued[3]; P('year');
+      afterImprint = rec.title.slice(glued.index + glued[0].length);
+      rec.title = kept;
+    }
+  }
+
+  /* Многотомники: «… : в 3 т. Т. 1», «… - 2 т. Т. 1: Города России в 1904 году. 1906».
+     Отдельного поля под заглавие тома в Zotero нет, поэтому когда оно есть —
+     вписываем его в общее заглавие и номер тома в поле не дублируем, иначе
+     стиль оформления напечатает «Т. 1» дважды. */
+  const restAfter = norm(afterImprint).replace(/^[\s.,;:–—−-]+/, '');
+  const volTail = norm((rec.title || '') + (restAfter ? ' ' + restAfter : ''));
+  const setSize = /(?:^|[\s:;,.–—−-])[вВ]?\s*(\d+)\s*т\./.exec(volTail);
+  const volNo   = /Т\.\s*(\d+)\.?(?:\s*[:.]\s*([^.]{3,90}))?/.exec(volTail);
+  if (setSize || volNo){
+    const cut  = Math.min(setSize ? setSize.index : 1e9, volNo ? volNo.index : 1e9);
+    const base = norm(volTail.slice(0, cut)).replace(/\s*[:;,–—−-]+\s*$/,'');
+    if (base){
+      if (setSize) rec.numberOfVolumes = setSize[1];
+      if (volNo){
+        const volTitle = volNo[2] ? norm(volNo[2]).replace(/\s*[.,:;–—−-]+$/,'') : '';
+        const ofSet = setSize ? ' из ' + setSize[1] : '';
+        if (volTitle){
+          rec.title = base + (/\.$/.test(base) ? ' ' : '. ') + 'Т. ' + volNo[1] + ': ' + volTitle;
+          rec.warnings.push('Многотомное издание: том ' + volNo[1] + ofSet
+            + '. Собственное заглавие тома вписано в общее — своего поля для него в Zotero нет. Проверьте, как это выглядит в вашем стиле оформления.');
+        } else {
+          rec.title  = base;
+          rec.volume = volNo[1];
+          rec.warnings.push('Многотомное издание: запись заведена на том ' + volNo[1] + ofSet
+            + '. Если нужен комплект целиком — очистите поле тома.');
+        }
+        // у тома бывает свой год издания, он точнее диапазона у всего комплекта
+        const after = volTail.slice(volNo.index + volNo[0].length);
+        const vy = after.match(/(1[5-9]\d{2}|20\d{2})/g);
+        if (vy){ rec.year = vy[vy.length - 1]; P('year'); }
+      } else {
+        rec.title = base;
+      }
+    }
+  }
+  if (rec.type === 'THES' && rec.title){
+    const cut = rec.title.search(/\s*:\s*(?:автореф\.|дис)/i);
+    if (cut > 0) rec.title = norm(rec.title.slice(0, cut));
+  }
+  if (rec.title) P('title');
+
+  // авторы и редакторы из области ответственности — она точнее заголовка
+  const resp = authorsFromResponsibility(responsibility);
+  if (resp.authors.length){
+    const merged = resp.authors.slice();
+    if (rec.authors && rec.authors.length){
+      const firstFam = rec.authors[0].family.toLowerCase();
+      if (!merged.some(a => a.family.toLowerCase() === firstFam)) merged.unshift(rec.authors[0]);
+    }
+    rec.authors = merged; P('authors');
+  }
+  if (resp.editors.length){
+    if (resp.isTranslator) rec.translators = resp.editors;
+    else { rec.editors = resp.editors; if (resp.isCompiler) rec.compilers = true; }
+  }
+
+  // выходные данные
+  const tailSource = containerPart || s;
+  const IMPRINT = new RegExp('(?:^|[.,]\\s+|\\s[–—−-]\\s*)(' + PLACE_RE + ')\\s*:\\s*([^,:–—−]{2,60}),\\s*(1[5-9]\\d{2}|20\\d{2})');
+  /* У журнала не бывает места издания и издательства. Если они нашлись
+     в области источника («// Сборник … – СПб.: Тип. …, 1912»), это глава
+     в книге или доклад в сборнике, а не статья в журнале. */
+  const fromContainer = containerPart ? IMPRINT.exec(containerPart) : null;
+  const imprint = fromContainer || IMPRINT.exec(tailSource) || IMPRINT.exec(rec.title || '');
+  if (fromContainer && rec.type === 'JOUR') rec.type = 'CHAP';
+  if (imprint){
+    rec.place = norm(imprint[1]).replace(/^[–—−-]\s*/,'');
+    rec.publisher = norm(imprint[2]);
+    rec.year = imprint[3];
+    P('year');
+  }
+
+  if (containerPart){
+    // у источника может быть своя область ответственности: «… / под ред. И. Е. Андреевского»
+    const cSlash = containerPart.indexOf(' / ');
+    if (cSlash > -1){
+      const cResp = containerPart.slice(cSlash + 3);
+      const stop = cResp.search(/\s[–—−]\s/);
+      const respText = stop > -1 ? cResp.slice(0, stop) : cResp;
+      const ed = authorsFromResponsibility(respText);
+      if (ed.editors.length && !rec.editors) rec.editors = ed.editors;
+      containerPart = norm(containerPart.slice(0, cSlash) + ' ' + (stop > -1 ? cResp.slice(stop) : ''));
+    }
+    /* Режем источник не по любому тире, а только по тому, за которым идут
+       выходные данные: год, номер, страницы, том или «Город:». Иначе
+       «Энциклопедический словарь. Т. 5: Буны - Вальтер» теряет половину. */
+    const SEP = new RegExp('\\s*[–—−-]\\s*(?=(?:1[5-9]\\d{2}|20\\d{2})\\b|№|Вып\\.|Т\\.\\s*\\d|Vol\\.|С\\.\\s*\\d|P{1,2}\\.\\s*\\d|' + PLACE_RE + ':)');
+    const cut = containerPart.search(SEP);
+    rec.container = norm(cut > -1 ? containerPart.slice(0, cut) : containerPart).replace(/[.,]\s*$/,'');
+    if (rec.container) P('container');
+    const yr = /(?:^|[.,–—−-]\s*)(1[5-9]\d{2}|20\d{2})(?=\s*[.,–—−-]|\s*$)/.exec(containerPart);
+    if (yr && !rec.year){ rec.year = yr[1]; P('year'); }
+    const iss = /№\s*(\d+(?:\s*[–—−-]\s*\d+)?(?:\s*\(\d+\))?)/.exec(containerPart);
+    if (iss) rec.issue = norm(iss[1]).replace(/\s*[–—−-]\s*/,'-');
+    const v = /(?:Vol|Т)\.\s*([\dIVXLC]+)/i.exec(containerPart);
+    if (v) rec.volume = v[1];
+  }
+
+  if (!rec.year){
+    const yr = /(?:^|[\s(,.])(1[5-9]\d{2}|20\d{2})(?=[\s).,;]|$)/.exec(rec.raw);
+    if (yr){ rec.year = yr[1]; rec.provenance.year = 'год найден в строке'; }
+  }
+
+  if (rec.type === 'BOOK' && rec.container) rec.type = 'CHAP';
+  if (ctx.section) rec.section = ctx.section;
+
+  /* Оценка качества. Отсутствие автора — не ошибка: у нормативных актов,
+     докладов и справочных статей его и не бывает. Отмечаем отдельным
+     признаком, а «проверить» ставим только когда разбор действительно шаток. */
+  const anonymousGenre = /^(Доклад|Журнал|Отчет|Отчёт|Обзор|Устав|Положение|Высочайше|Обязательн|Инструкц|Постановлен|Решение|Циркуляр|Сборник|Свод|Ведомость|Памятная|Материалы|Протокол|Труды|Списки|Список|Правила|Об |О |Краткий|Первая|Статистическ)/i;
+  rec.noAuthor = !rec.authors || !rec.authors.length;
+  const hasContributors = (rec.editors && rec.editors.length) || (rec.translators && rec.translators.length);
+  if (rec.noAuthor && hasContributors){
+    rec.warnings.push(rec.compilers
+      ? 'У издания нет автора — есть составитель. В Zotero отдельного типа «составитель» нет, поэтому он записан редактором (Editor): это стандартная практика, и в списке литературы он отобразится корректно.'
+      : 'У издания нет автора — ответственность несёт редактор или переводчик, он записан соответствующим типом.');
+  }
+  if (!rec.title) rec.confidence = 'fail';
+  else if (rec.noAuthor && !hasContributors && !anonymousGenre.test(rec.title) && !/(Нормативные|Делопроизводственная|Справочные|периодическ)/i.test(rec.section||'')){
+    rec.confidence = 'check';
+    rec.warnings.push('Автор не определён, хотя запись не похожа на документ без автора — проверьте начало строки.');
+  } else if (!rec.year) rec.confidence = 'check';
+  if (rec.title && rec.title.length > 300) rec.confidence = 'check';
+
+  /* Главное правило честности: сервис не обязан разобрать всё, но не должен
+     молча отдавать неверное поле. Если в заглавии осталась структура самой
+     записи — чужие инициалы, область с пробелами вокруг двоеточия, хвост
+     выходных данных, — значит разбор не доделан, и это надо показать. */
+  if (rec.title){
+    const traces = [];
+    if (/^[,;:–—−-]/.test(rec.title))                   traces.push('обрывок в начале');
+    if (/\s[:;]\s/.test(rec.title))                     traces.push('служебные разделители');
+    if (/[–—−-]\s*[А-ЯЁ][А-Яа-яЁё.\- ]{1,30}\s*:\s/.test(rec.title)) traces.push('выходные данные');
+    if (/\/\s*(?:Сост|сост|Под\s+ред|под\s+ред|Отв\.\s*ред|пер\.\s*с)/.test(rec.title)) traces.push('область ответственности');
+    if (traces.length){
+      rec.confidence = 'check';
+      rec.warnings.push('В заглавии остались следы разбора (' + traces.join(', ')
+        + ') — вероятно, часть описания не отделилась. Проверьте поле «Заглавие».');
+    }
+  }
+  return rec;
+}
+
+/* Разбор всего списка с учётом заголовков разделов и архивов */
+function parseBibliography(text){
+  const out = [];
+  let section = '', archive = '';
+  for (const line of String(text).split(/\r?\n/)){
+    const s = norm(line);
+    if (!s) continue;
+    if (isSectionHeader(s)){
+      if (/архив|РГИА|ГАВО|ГАНО/i.test(s) && /\(|г\./.test(s)) archive = s;
+      else { section = s.replace(/:$/,''); archive = ''; }
+      out.push({ kind:'header', text:s });
+      continue;
+    }
+    const rec = parseGost(s, { section, archive });
+    if (rec){ rec.kind = 'record'; out.push(rec); }
+  }
+  return out;
+}
+
+/* ------------------------- Строка цитирования ------------------------- */
+/* ГОСТ: Фамилия И. О. Заглавие // Журнал. Год. №N. С. 1-10. URL: … */
+function parseCitationString(raw){
+  const rec = { type:'JOUR', provenance:{}, warnings:[] };
+  const P = f => rec.provenance[f] = 'строка цитирования';
+  let s = String(raw).replace(/\s+/g,' ').trim();
+
+  const url = /(https?:\/\/[^\s)]+)/.exec(s);
+  if (url){ rec.url = url[1].replace(/[.,;]+$/,''); P('url'); }
+  const doi = RE_DOI.exec(s);
+  if (doi){ rec.doi = doi[0].replace(/[.,;]+$/,''); P('doi'); }
+
+  s = s.replace(/\(дата обращения:[^)]*\)\.?/i,'')
+       .replace(/URL:\s*https?:\/\/\S+/i,'')
+       .replace(/DOI:?\s*10\.\S+/i,'').trim();
+
+  const authors = [];
+  const reAuthor = new RegExp('^([А-ЯЁA-Z][А-Яа-яЁёA-Za-z\\-\']+)\\s+(' + INITS + ')');
+  let guard = 0;
+  while (reAuthor.test(s) && guard++ < 8){
+    const m = reAuthor.exec(s);
+    authors.push({ family:m[1], given:m[2].replace(/\s+/g,' ').trim() });
+    s = s.slice(m[0].length).replace(/^[,;]\s*/,'').trim();
+  }
+  // второй заход: авторы, записанные полностью, в том числе через запятую
+  if (!authors.length){
+    const reFull = new RegExp('^' + FULLNAME + '(?=[\\s,;]|$)');
+    let g2 = 0;
+    while (reFull.test(s) && g2++ < 8){
+      const m = reFull.exec(s);
+      authors.push({ family:m[1], given:(m[2] + ' ' + m[3]).trim() });
+      s = s.slice(m[0].length).replace(/^[,;]\s*/,'').trim();
+    }
+    if (authors.length)
+      rec.warnings.push('Авторы записаны полностью, без инициалов — так их отдаёт сайт. '
+        + 'Zotero сократит их по правилам выбранного стиля; если нужно иначе, поправьте поле «Авторы».');
+  }
+  if (authors.length){ rec.authors = authors; P('authors'); }
+
+  const split = s.split('//');
+  if (split.length >= 2){
+    rec.title = split[0].replace(/[.\s]+$/,'').trim(); P('title');
+    const tailStr = split.slice(1).join('//').trim();
+    const cm = /^([^.]+?)\./.exec(tailStr);
+    if (cm){ rec.container = cm[1].trim(); P('container'); }
+    const y = /\b(1[89]\d{2}|20\d{2})\b/.exec(tailStr);
+    if (y){ rec.year = y[1]; P('year'); }
+    const vol = /Т\.\s*([^.\s]+)/.exec(tailStr);      if (vol) rec.volume = vol[1];
+    const iss = /№\s*([^.\s]+)/.exec(tailStr);        if (iss) rec.issue = iss[1];
+    const pg  = /С\.\s*(\d+\s*[-–—]\s*\d+|\d+)/.exec(tailStr);
+    if (pg) rec.pages = pg[1].replace(/\s/g,'');
+  } else {
+    const t = /^(.+?)\.\s/.exec(s);
+    if (t){ rec.title = t[1].trim(); P('title'); }
+    else if (s){ rec.title = s.replace(/[.\s]+$/,''); P('title'); }
+    const y = /\b(1[89]\d{2}|20\d{2})\b/.exec(s);
+    if (y){ rec.year = y[1]; P('year'); }
+  }
+  return rec;
+}
+
+/* ------------------------------ Диспетчер ------------------------------ */
+function buildRecord(text, filename){
+  const { data: fm, body } = parseFrontmatter(text);
+  // то, что пришло в свойствах заметки, важнее дубля в тексте
+  const data = Object.assign({}, parseInlineMeta(body), fm);
+  const site = detectSource(body);
+  let rec = site === 'cyberleninka' ? parseCyberleninka(body)
+          : site === 'elibrary'     ? parseElibrary(body)
+          : { type:'JOUR', provenance:{}, warnings:[
+              'Источник не опознан: нет ни признаков КиберЛенинки, ни eLibrary. Заполнено только то, что нашлось во фронтматтере.' ] };
+
+  // фронтматтер главнее разбора текста: он пришёл из метаданных страницы
+  /* page_title идёт первым: это заглавие со страницы, оно есть всегда,
+     а title приходит из citation_title и, если он есть, должен победить.
+     Фильтра default в Web Clipper нет, поэтому запасной вариант —
+     отдельное свойство шаблона, а выбор между ними делается здесь. */
+  /* Порядок важен: ключи обрабатываются сверху вниз, и поздний перезаписывает ранний.
+     page_title — запасное заглавие, title из citation_title побеждает;
+     canonical — адрес из citation_fulltext_html_url, он точнее адреса вкладки. */
+  const map = { page_title:'title', title:'title', doi:'doi', source:'url', url:'url',
+                canonical:'url', journal:'container', published:'year', year:'year',
+                publisher:'publisher', volume:'volume', issue:'issue', pages:'pages',
+                issn:'issn' };
+  for (const key in map){
+    if (data[key]){
+      const val = Array.isArray(data[key]) ? data[key][0] : data[key];
+      const field = map[key];
+      if (field === 'year'){
+        const y = /\b(1[89]\d{2}|20\d{2})\b/.exec(String(val));
+        if (y){ rec.year = y[1]; rec.provenance.year = 'фронтматтер заметки'; }
+      } else {
+        rec[field] = String(val).trim();
+        rec.provenance[field] = 'фронтматтер заметки';
+      }
+    }
+  }
+  if (!rec.pages && (data.firstpage || data.lastpage)){
+    rec.pages = [data.firstpage, data.lastpage].filter(Boolean).join('-');
+    rec.provenance.pages = 'фронтматтер заметки';
+  }
+  if (data.keywords){
+    const list = Array.isArray(data.keywords) ? data.keywords : String(data.keywords).split(/[,;]/);
+    const kw = list.map(k => {
+      k = String(k).trim();
+      // citation_keywords отдаются капслоком — возвращаем человеческий вид
+      return /[А-ЯЁA-Z]/.test(k) && k === k.toUpperCase()
+        ? k.charAt(0) + k.slice(1).toLowerCase() : k;
+    }).filter(Boolean);
+    if (kw.length && !(rec.keywords || []).length) rec.keywords = kw;
+  }
+  if (data.authors){
+    const list = Array.isArray(data.authors) ? data.authors : String(data.authors).split(/[;,]/);
+    const parsed = list.map(normalizeAuthor).filter(Boolean);
+    if (parsed.length){ rec.authors = parsed; rec.provenance.authors = 'фронтматтер заметки'; }
+  }
+  /* Если шаблон клиппера заполнил главное, незнакомый сайт перестаёт быть проблемой:
+     предупреждение про «источник не опознан» в этом случае только пугает. */
+  if (rec.title && (rec.authors || []).length && rec.container)
+    rec.warnings = (rec.warnings || []).filter(w => !/Источник не опознан/.test(w));
+  // предупреждения, которые перестали быть правдой после слияния с метаданными
+  if (rec.url)
+    rec.warnings = (rec.warnings || []).filter(w => !/нет адреса самой статьи/i.test(w));
+  if ((rec.keywords || []).length)
+    rec.warnings = (rec.warnings || []).filter(w => !/Ключевые слова.*пуст/i.test(w));
+
+  rec.sourceSite = site;
+  rec.filename = filename || '';
+  rec.cleanBody = site === 'elibrary' ? stripElibrarySession(body).text : body;
+  return rec;
+}
+
+/* -------------------------------- RIS -------------------------------- */
+function toRIS(rec, vaultPath){
+  const L = [];
+  L.push('TY  - ' + (rec.type || 'JOUR'));
+  (rec.authors || []).forEach(a => L.push('AU  - ' + (a.given ? a.family + ', ' + a.given : a.family)));
+  if (rec.title)     L.push('TI  - ' + rec.title);
+  if (rec.container) L.push((rec.type === 'CPAPER' || rec.type === 'CHAP' ? 'T2  - ' : 'JO  - ') + rec.container);
+  if (rec.year)      L.push('PY  - ' + rec.year);
+  if (rec.volume)    L.push('VL  - ' + rec.volume);
+  if (rec.issue)     L.push('IS  - ' + rec.issue);
+  if (rec.pages){
+    const p = String(rec.pages).split(/[-–—]/);
+    if (p.length === 2){ L.push('SP  - ' + p[0].trim()); L.push('EP  - ' + p[1].trim()); }
+    else L.push('SP  - ' + rec.pages);
+  }
+  if (rec.place)     L.push('CY  - ' + rec.place);
+  if (rec.publisher) L.push('PB  - ' + rec.publisher);
+  if (rec.degree)    L.push('M3  - ' + rec.degree);
+  // только число: «с.» дописывает сам стиль оформления, иначе в Word выходит «39 с. c.»
+  if (!rec.pages && rec.numPages) L.push('SP  - ' + rec.numPages);
+  if (rec.numberOfVolumes) L.push('NV  - ' + rec.numberOfVolumes);
+  if (rec.archive)   L.push('AV  - ' + rec.archive + (rec.archiveLocation ? '. ' + rec.archiveLocation : ''));
+  (rec.translators || []).forEach(t => L.push('A4  - ' + (t.given ? t.family + ', ' + t.given : t.family)));
+  (rec.editors || []).forEach(e => L.push('A2  - ' + (e.given ? e.family + ', ' + e.given : e.family)));
+  if (rec.series)    L.push('T3  - ' + rec.series);
+  // в RIS тег SN общий для ISSN и ISBN; у книги приоритет у ISBN
+  if (rec.isbn)      L.push('SN  - ' + rec.isbn);
+  else if (rec.issn) L.push('SN  - ' + rec.issn);
+  if (rec.doi)       L.push('DO  - ' + rec.doi);
+  if (rec.url)       L.push('UR  - ' + rec.url);
+  if (rec.abstract)  L.push('AB  - ' + String(rec.abstract).replace(/\s*\n\s*/g,' '));
+  (rec.keywords || []).forEach(k => L.push('KW  - ' + k));
+  if (rec.lang)      L.push('LA  - ' + rec.lang);
+  if (rec.edn)       L.push('C1  - EDN: ' + rec.edn);
+  if (rec.raw)       L.push('N1  - Исходная запись: ' + rec.raw);
+  (rec.notes || []).forEach(n => L.push('N1  - ' + n));
+  if (vaultPath && rec.filename){
+    const sep = vaultPath.includes('\\') ? '\\' : '/';
+    L.push('L1  - ' + vaultPath.replace(/[\\\/]+$/,'') + sep + rec.filename);
+  }
+  L.push('ER  - ');
+  L.push('');
+  return L.join('\n');
+}
+
+/* ====================== Транслитерация (романизация) ======================
+   Три схемы, между которыми выбирают в реальной практике:
+
+   ala-lc  ALA-LC (Library of Congress) — англоязычные гуманитарные журналы,
+           университетские издательства, библиотечные каталоги. Схема по умолчанию.
+           Полный вид использует диакритику (ĭ, ë, ė, t͡s, i͡u); в статьях её
+           обычно печатают без неё — это и есть «нестрогий» режим.
+   gost-b  ГОСТ 7.79-2000 система Б — блок References в российских журналах
+           Scopus/WoS. Обратимая: х → x, ы → y`, э → e`, ь → `, ъ → ``,
+           щ → shh, ц → c перед и/і/е/ы/й и cz в остальных случаях.
+   bgn     BGN/PCGN — британские издательства, атласы, топонимы. Узнаётся по
+           Yekaterinburg: е в начале слова и после гласных, й, ь, ъ → ye.
+
+   Небуквенные символы, латиница и цифры проходят насквозь: «XVII – XX вв.»
+   остаётся римскими цифрами, превращаясь только в «XVII – XX vv.».
+   ========================================================================== */
+
+const TL_VOWELS   = 'аеёиоуыэюяіѣѵ';
+const TL_AFTER_YE = 'аеёиоуыэюяіѣѵйьъ';   // после чего е → ye в BGN/PCGN
+
+const TL_ALA = {
+  а:'a', б:'b', в:'v', г:'g', д:'d', е:'e', ё:'ë', ж:'zh', з:'z', и:'i',
+  й:'ĭ', к:'k', л:'l', м:'m', н:'n', о:'o', п:'p', р:'r', с:'s', т:'t',
+  у:'u', ф:'f', х:'kh', ц:'t͡s', ч:'ch', ш:'sh', щ:'shch', ъ:'ʺ', ы:'y',
+  ь:'ʹ', э:'ė', ю:'i͡u', я:'i͡a',
+  // дореформенные и украинские
+  і:'ī', ѣ:'i͡e', ѳ:'ḟ', ѵ:'ẏ', ї:'ï', є:'i͡e', ґ:'g',
+  '«':'"', '»':'"'
+};
+
+const TL_GOST = {
+  а:'a', б:'b', в:'v', г:'g', д:'d', е:'e', ё:'yo', ж:'zh', з:'z', и:'i',
+  й:'j', к:'k', л:'l', м:'m', н:'n', о:'o', п:'p', р:'r', с:'s', т:'t',
+  у:'u', ф:'f', х:'x', ц:'cz', ч:'ch', ш:'sh', щ:'shh', ъ:'``', ы:'y`',
+  ь:'`', э:'e`', ю:'yu', я:'ya',
+  і:'i', ѣ:'ye', ѳ:'fh', ѵ:'yh', ї:'yi', є:'ye', ґ:'g`',
+  '«':'"', '»':'"'
+};
+
+const TL_BGN = {
+  а:'a', б:'b', в:'v', г:'g', д:'d', е:'e', ё:'ë', ж:'zh', з:'z', и:'i',
+  й:'y', к:'k', л:'l', м:'m', н:'n', о:'o', п:'p', р:'r', с:'s', т:'t',
+  у:'u', ф:'f', х:'kh', ц:'ts', ч:'ch', ш:'sh', щ:'shch', ъ:'ˮ', ы:'y',
+  ь:'ʼ', э:'e', ю:'yu', я:'ya',
+  і:'i', ѣ:'ye', ѳ:'f', ѵ:'y', ї:'yi', є:'ye', ґ:'g',
+  '«':'"', '»':'"'
+};
+
+const TL_SCHEMES = {
+  'ala-lc': { label:'ALA-LC', map:TL_ALA },
+  'gost-b': { label:'ГОСТ 7.79-2000 (Б)', map:TL_GOST, ctx:tlGostCtx },
+  'bgn':    { label:'BGN/PCGN', map:TL_BGN, ctx:tlBgnCtx }
+};
+
+/* ц в системе Б: c перед и, і, е, ы, й — cz во всех прочих случаях */
+function tlGostCtx(lower, chars, i){
+  if (lower !== 'ц') return null;
+  for (let k = i + 1; k < chars.length; k++){
+    const c = chars[k].toLowerCase();
+    if (!/[а-яёіѣѳѵїєґ]/.test(c)) break;
+    return 'иіеый'.includes(c) ? 'c' : 'cz';
+  }
+  return 'cz';
+}
+
+/* е и ё в BGN/PCGN: ye / yë в начале слова и после гласных, й, ь, ъ */
+function tlBgnCtx(lower, chars, i){
+  if (lower !== 'е' && lower !== 'ё') return null;
+  const prev = i > 0 ? chars[i - 1].toLowerCase() : '';
+  const wordStart = !prev || !/\p{L}/u.test(prev);
+  const yod = wordStart || TL_AFTER_YE.includes(prev);
+  if (lower === 'е') return yod ? 'ye' : 'e';
+  return yod ? 'yë' : 'ë';
+}
+
+/* Упрощение: снять диакритику и модификаторы, оставив только ASCII-буквы.
+   Так романизацию печатают в большинстве журналов. */
+function tlSimplify(s){
+  return s.normalize('NFD')
+          .replace(/[̀-ͯ]/g, '')
+          .replace(/[ʹʺʻʼˮ·`‘’']/g, '')
+          .normalize('NFC');
+}
+
+function tlCase(rep, chars, i){
+  if (!rep) return rep;
+  const isUp = c => !!c && /\p{Lu}/u.test(c);
+  if (isUp(chars[i + 1]) || isUp(chars[i - 1])) return rep.toUpperCase();
+  return rep.charAt(0).toUpperCase() + rep.slice(1);
+}
+
+function translit(text, scheme, strict){
+  if (!text) return '';
+  const S = TL_SCHEMES[scheme] || TL_SCHEMES['ala-lc'];
+  const chars = Array.from(String(text));
+  let out = '';
+  for (let i = 0; i < chars.length; i++){
+    const ch = chars[i];
+    const lower = ch.toLowerCase();
+    let rep = S.ctx ? S.ctx(lower, chars, i) : null;
+    if (rep === null || rep === undefined) rep = S.map[lower];
+    if (rep === undefined){ out += ch; continue; }   // латиница, цифры, знаки — как есть
+    if (!strict) rep = tlSimplify(rep);
+    if (ch !== lower) rep = tlCase(rep, chars, i);
+    out += rep;
+  }
+  return out;
+}
+
+function hasCyrillic(s){ return /[а-яёіѣѳѵїєґ]/i.test(String(s || '')); }
+
+/* Романизованная копия записи для англоязычной статьи.
+   Кириллический оригинал не теряется: он уезжает в примечание (N1).
+   Заглавие по APA 7 — романизация, затем английский перевод в квадратных
+   скобках; перевод вводит человек, машина его не придумывает. */
+function toEnglishRecord(rec, scheme, strict, englishTitle){
+  const t = s => translit(s, scheme, strict);
+  const person = p => ({ family: t(p.family || ''), given: t(p.given || '') });
+  const r = Object.assign({}, rec);
+
+  r.authors     = (rec.authors || []).map(person);
+  r.editors     = (rec.editors || []).map(person);
+  r.translators = (rec.translators || []).map(person);
+
+  ['title','container','publisher','place','series','degree','archive','archiveLocation']
+    .forEach(f => { if (rec[f]) r[f] = t(rec[f]); });
+
+  if (englishTitle && String(englishTitle).trim())
+    r.title = (r.title ? r.title + ' ' : '') + '[' + String(englishTitle).trim() + ']';
+
+  // Запись, в которой кириллицы не было (англоязычный источник в списке),
+  // романизировать не нужно и помечать как русскую — тоже.
+  const wasCyrillic = hasCyrillic([
+    rec.title, rec.container, rec.publisher, rec.place,
+    (rec.authors || []).map(a => a.family).join(' '),
+    (rec.editors || []).map(a => a.family).join(' ')
+  ].filter(Boolean).join(' '));
+  if (!wasCyrillic){ r.notes = []; r.raw = rec.raw || null; return r; }
+
+  r.lang = 'ru';
+  r.romanized = true;
+  r.notes = [];
+  const orig = [
+    (rec.authors || []).map(a => a.family + (a.given ? ' ' + a.given : '')).join('; '),
+    rec.title,
+    rec.container ? '// ' + rec.container : '',
+    [rec.place, rec.publisher].filter(Boolean).join(': '),
+    rec.year
+  ].filter(Boolean).map(s => String(s).replace(/\s*\.\s*$/, '')).join('. ');
+  if (orig) r.notes.push('Оригинал (кириллица): ' + orig);
+  r.notes.push('Романизация: ' + (TL_SCHEMES[scheme] || TL_SCHEMES['ala-lc']).label
+               + (strict ? ' (строго по стандарту)' : ' (упрощённо, без диакритики)'));
+  // null означает массовую выгрузку: напоминание про перевод там не нужно 458 раз
+  if (englishTitle !== null && (!englishTitle || !String(englishTitle).trim()))
+    r.notes.push('Английский перевод заглавия не вписан — для APA 7 он обязателен.');
+  r.raw = null;
+  return r;
+}
+
+/* Одна строка в стиле APA 7 — чтобы глазами сверить результат */
+function apaPreview(rec){
+  const one = a => {
+    const ini = (a.given || '').split(/\s+/).filter(Boolean)
+      .map(x => x.replace(/[^A-Za-z]/g,'').charAt(0)).filter(Boolean)
+      .map(x => x + '.').join(' ');
+    return a.family + (ini ? ', ' + ini : '');
+  };
+  const join = list => list.length === 1 ? list[0]
+    : list.slice(0,-1).join(', ') + ', & ' + list[list.length-1];
+
+  let s = '';
+  if ((rec.authors || []).length) s = join(rec.authors.map(one));
+  else if ((rec.editors || []).length)
+    s = join(rec.editors.map(one)) + ' (' + (rec.editors.length > 1 ? 'Eds.' : 'Ed.') + ').';
+  if (rec.year) s += (s ? ' ' : '') + '(' + rec.year + ').';
+  if (rec.title) s += ' ' + rec.title + (/[.!?]$/.test(rec.title) ? '' : '.');
+  const pages = String(rec.pages || '').replace(/\s*[-–—]\s*/, '–');
+  if (rec.container) s += ' ' + rec.container
+    + (rec.volume ? ', ' + rec.volume + (rec.issue ? '(' + rec.issue + ')' : '')
+                  : (rec.issue ? ', (' + rec.issue + ')' : ''))
+    + (pages ? ', ' + pages : '') + '.';
+  else if (rec.publisher) s += ' ' + rec.publisher + '.';
+  if (rec.doi) s += ' https://doi.org/' + String(rec.doi).replace(/^https?:\/\/doi\.org\//,'');
+  return s.trim();
+}
+
+/* === PARSERS_END === */
+
+
+/* ============================ ИНТЕРФЕЙС ============================ */
+if (typeof document !== 'undefined'){
+  const $ = id => document.getElementById(id);
+  let current = null;
+
+  function isEn(){ return document.documentElement.classList.contains('lang-en'); }
+
+  function show(rec){
+    current = rec;
+    $('result').classList.remove('hidden');
+    $('f_type').value      = rec.type || 'JOUR';
+    $('f_authors').value   = authorsToString(rec.authors);
+    $('f_title').value     = rec.title || '';
+    $('f_container').value = rec.container || '';
+    $('f_year').value      = rec.year || '';
+    $('f_volume').value    = rec.volume || '';
+    $('f_issue').value     = rec.issue || '';
+    $('f_pages').value     = rec.pages || '';
+    $('f_doi').value       = rec.doi || '';
+    $('f_url').value       = rec.url || '';
+    $('f_keywords').value  = (rec.keywords || []).join(', ');
+    $('f_abstract').value  = rec.abstract || '';
+    ['authors','title','container','year','doi','url'].forEach(f => {
+      const el = $('p_' + f);
+      if (!el) return;
+      el.textContent = rec.provenance && rec.provenance[f] ? rec.provenance[f] : '';
+      el.style.display = el.textContent ? '' : 'none';
+    });
+    const box = $('messages'); box.innerHTML = '';
+    (rec.warnings || []).forEach(w => {
+      const d = document.createElement('div');
+      d.className = 'msg ' + (/удал[её]н/i.test(w) ? 'o' : 'w');
+      d.textContent = w; box.appendChild(d);
+    });
+    if (!rec.title || !rec.authors || !rec.authors.length){
+      const d = document.createElement('div'); d.className = 'msg w';
+      d.textContent = isEn()
+        ? 'Title or authors are missing — fill in manually or paste a "Cite" string from the article page.'
+        : 'Не хватает заглавия или авторов — заполните вручную либо вставьте строку «Цитировать» с сайта.';
+      box.appendChild(d);
+    }
+    refresh();
+    $('result').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function collect(){
+    if (!current) return null;
+    const r = Object.assign({}, current);
+    r.type      = $('f_type').value;
+    r.authors   = authorsFromString($('f_authors').value);
+    r.title     = $('f_title').value.trim();
+    r.container = $('f_container').value.trim();
+    r.year      = $('f_year').value.trim();
+    r.volume    = $('f_volume').value.trim();
+    r.issue     = $('f_issue').value.trim();
+    r.pages     = $('f_pages').value.trim();
+    r.doi       = $('f_doi').value.trim();
+    r.url       = $('f_url').value.trim();
+    r.keywords  = $('f_keywords').value.split(',').map(s=>s.trim()).filter(Boolean);
+    r.abstract  = $('f_abstract').value.trim();
+    return r;
+  }
+  function refresh(){
+    const r = collect();
+    if (!r) return;
+    $('risOut').textContent = toRIS(r, $('f_vault').value.trim());
+    refreshEn();
+  }
+
+  /* ---------------- Романизация ----------------  */
+  function tlScheme(){ const el = $('tl_scheme'); return el ? el.value : 'ala-lc'; }
+  function tlStrict(){ const el = $('tl_strict'); return !!(el && el.checked); }
+
+  function enRecord(forBulk){
+    const base = forBulk || collect();
+    if (!base) return null;
+    return toEnglishRecord(base, tlScheme(), tlStrict(),
+                           forBulk ? null : $('tl_entitle').value);
+  }
+
+  function refreshEn(){
+    const en = enRecord();
+    if (!en) return;
+    $('tlApa').textContent = apaPreview(en) || '—';
+    const names = list => (list || []).map(a => a.family + (a.given ? ', ' + a.given : '')).join(' ; ');
+    $('tlFields').textContent = [
+      (en.authors || []).length ? 'Authors     ' + names(en.authors) : null,
+      (en.editors || []).length ? 'Editors     ' + names(en.editors) : null,
+      (en.translators || []).length ? 'Translators ' + names(en.translators) : null,
+      en.title     ? 'Title       ' + en.title : null,
+      en.container ? 'Container   ' + en.container : null,
+      (en.place || en.publisher) ? 'Imprint     ' + [en.place, en.publisher].filter(Boolean).join(': ') : null,
+      en.archive   ? 'Archive     ' + en.archive : null,
+      (en.notes || []).length ? '\nNote:\n  ' + en.notes.join('\n  ') : null
+    ].filter(Boolean).join('\n');
+  }
+
+  ['tl_scheme','tl_strict'].forEach(id => {
+    const el = $(id); if (el) el.addEventListener('change', () => {
+      if (id === 'tl_scheme' && $('tl_scheme2')) $('tl_scheme2').value = $('tl_scheme').value;
+      refreshEn();
+    });
+  });
+  if ($('tl_scheme2')) $('tl_scheme2').addEventListener('change', () => {
+    $('tl_scheme').value = $('tl_scheme2').value; refreshEn();
+  });
+
+  function enName(){
+    const t = translit(baseName(), tlScheme(), false).replace(/[^A-Za-z0-9 .,\-]/g,'').trim();
+    return (t || 'source').slice(0,60) + '-en';
+  }
+  $('btnRisEn').addEventListener('click', () => {
+    const en = enRecord(); if (!en) return;
+    save(enName() + '.ris', toRIS(en, ''), 'application/x-research-info-systems');
+  });
+  $('btnCopyEn').addEventListener('click', async () => {
+    const en = enRecord(); if (!en) return;
+    const txt = toRIS(en, '');
+    const btn = $('btnCopyEn');
+    try { await navigator.clipboard.writeText(txt); }
+    catch(e){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); ta.remove(); }
+    btn.textContent = isEn() ? 'Copied ✓' : 'Скопировано ✓';
+    setTimeout(()=>{ btn.innerHTML = '<span class="ru">Копировать</span><span class="en">Copy</span>'; }, 2200);
+  });
+  document.addEventListener('input', e => { if (e.target.closest('#result')) refresh(); });
+
+  function readFile(file){
+    const fr = new FileReader();
+    fr.onload = () => show(buildRecord(String(fr.result), file.name));
+    fr.readAsText(file, 'utf-8');
+  }
+  const drop = $('drop');
+  drop.addEventListener('click', () => $('file').click());
+  $('file').addEventListener('change', e => { if (e.target.files[0]) readFile(e.target.files[0]); });
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('hot'); }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('hot'); }));
+  drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) readFile(f); });
+
+  $('btnPaste').addEventListener('click', () => {
+    const v = $('paste').value.trim();
+    if (!v) return;
+    if (/^10\.\d{4,9}\//.test(v)){ show({ type:'JOUR', doi:v, provenance:{doi:'введено вручную'}, warnings:[
+      isEn() ? 'Only a DOI was entered. Click "Enrich by DOI (Crossref)" to fill in the other fields.'
+             : 'Введён только DOI. Нажмите «Уточнить по DOI (Crossref)», чтобы подтянуть остальные поля.'] }); return; }
+    if (/^https?:\/\/\S+$/.test(v)){ show({ type:'JOUR', url:v, provenance:{url:'введено вручную'}, warnings:[
+      isEn() ? 'Only a URL was entered. Fill in the fields manually or paste a "Cite" string from the article page.'
+             : 'Введён только адрес. Заполните поля вручную или вставьте строку «Цитировать» с сайта — в ней есть всё сразу.'] }); return; }
+    const looksGost = /\s\/\/\s|\s\/\s|[–—]\s*\d+\s*с\./.test(v);
+    const looksSite = /дата обращения|дата доступа|accessed|URL\s*:/i.test(v)
+      || (/\s\/\/\s/.test(v) && !/[–—−]\s*(?:1[5-9]\d{2}|20\d{2}|№|Вып\.|Т\.\s*\d|С\.\s*\d|P{1,2}\.\s*\d)/.test(v));
+    const rec = (looksGost && !looksSite) ? parseGost(v, {}) : parseCitationString(v);
+    if (!looksGost && !/^10\./.test(v)){
+      rec.warnings = (rec.warnings || []).concat(
+        isEn() ? 'This does not look like GOST format (possibly APA, Chicago, MLA). Parsing by template is unreliable here — try "Match citation string (Crossref)" for style-independent matching.'
+               : 'Похоже, это не ГОСТ, а другой стиль (APA, Chicago, MLA). Разбор по шаблону здесь ненадёжен — нажмите «Распознать описание (Crossref)»: он сопоставит строку со своей базой независимо от стиля.');
+    }
+    show(rec);
+  });
+
+  $('btnDemo').addEventListener('click', () => {
+    $('paste').value = 'Лукина Н. П. Новые тенденции в социальной структуре информационного общества в контексте теории прекариата Гая Стэндинга // Гуманитарная информатика. 2015. №9. URL: https://cyberleninka.ru/article/n/novye-tendentsii-v-sotsialnoy-strukture-informatsionnogo-obschestva-v-kontekste-teorii-prekariata-gaya-stendinga (дата обращения: 04.10.2026).';
+    $('btnPaste').click();
+  });
+
+  async function net(fn, label){
+    const st = $('netStatus'); st.textContent = isEn() ? 'Requesting…' : 'Запрос…';
+    try { await fn(); st.textContent = label + (isEn() ? ' — done' : ' — готово'); }
+    catch(e){
+      const msg = /429/.test(e.message)
+        ? (isEn() ? 'rate-limited — wait a minute and try again' : 'сервис временно ограничил частоту запросов — подождите минуту и попробуйте снова')
+        : e.message;
+      st.textContent = (isEn() ? 'Failed: ' : 'Не получилось: ') + msg;
+    }
+    setTimeout(()=>{ st.textContent=''; }, 6000);
+  }
+
+  $('btnCrossref').addEventListener('click', () => net(async () => {
+    const doi = $('f_doi').value.trim();
+    if (!doi) throw new Error(isEn() ? 'DOI field is empty' : 'поле DOI пустое');
+    const r = await fetch('https://api.crossref.org/works/' + encodeURIComponent(doi));
+    if (!r.ok) throw new Error('Crossref ' + r.status);
+    const m = (await r.json()).message;
+    const rec = collect();
+    if (m.title && m.title[0]){ rec.title = m.title[0]; rec.provenance.title = 'Crossref'; }
+    if (m.author){ rec.authors = m.author.map(a => ({ family:a.family||a.name||'', given:a.given||'' })); rec.provenance.authors = 'Crossref'; }
+    if (m['container-title'] && m['container-title'][0]){ rec.container = m['container-title'][0]; rec.provenance.container = 'Crossref'; }
+    const parts = (m.issued && m.issued['date-parts'] && m.issued['date-parts'][0]) || [];
+    if (parts[0]){ rec.year = String(parts[0]); rec.provenance.year = 'Crossref'; }
+    if (m.volume) rec.volume = m.volume;
+    if (m.issue)  rec.issue = m.issue;
+    if (m.page)   rec.pages = m.page;
+    if (m.publisher) rec.publisher = m.publisher;
+    if (m.URL){ rec.url = m.URL; rec.provenance.url = 'Crossref'; }
+    rec.warnings = [isEn() ? 'Fields updated from Crossref — these are the publisher\'s own metadata.' : 'Поля обновлены по данным Crossref — это метаданные от самого издателя.'];
+    show(rec);
+  }, 'Crossref'));
+
+  $('btnOpenAlex').addEventListener('click', () => net(async () => {
+    const title = $('f_title').value.trim();
+    if (!title) throw new Error(isEn() ? '"Title" field is empty' : 'поле «Заглавие» пустое');
+    const r = await fetch('https://api.openalex.org/works?per-page=1&search=' + encodeURIComponent(title));
+    if (!r.ok) throw new Error('OpenAlex ' + r.status);
+    const res = (await r.json()).results || [];
+    if (!res.length) throw new Error(isEn() ? 'nothing found in OpenAlex' : 'в OpenAlex ничего не нашлось');
+    const w = res[0], rec = collect();
+    rec.title = w.display_name || rec.title; rec.provenance.title = 'OpenAlex';
+    if (w.authorships && w.authorships.length){
+      rec.authors = w.authorships.map(a => normalizeAuthor(a.author && a.author.display_name || '')).filter(Boolean);
+      rec.provenance.authors = 'OpenAlex';
+    }
+    if (w.publication_year){ rec.year = String(w.publication_year); rec.provenance.year = 'OpenAlex'; }
+    if (w.doi){ rec.doi = String(w.doi).replace(/^https?:\/\/doi\.org\//,''); rec.provenance.doi = 'OpenAlex'; }
+    const src = w.primary_location && w.primary_location.source;
+    if (src && src.display_name){ rec.container = src.display_name; rec.provenance.container = 'OpenAlex'; }
+    if (w.biblio){ rec.volume = w.biblio.volume || rec.volume; rec.issue = w.biblio.issue || rec.issue;
+      if (w.biblio.first_page) rec.pages = w.biblio.first_page + (w.biblio.last_page ? '-' + w.biblio.last_page : ''); }
+    rec.warnings = [isEn() ? 'Fields updated from OpenAlex. This is an aggregated database: verify title and authors against the original.'
+                           : 'Поля обновлены по OpenAlex. Это сводная база: сверьте заглавие и авторов с оригиналом.'];
+    show(rec);
+  }, 'OpenAlex'));
+
+
+  /* ===================== МАССОВЫЙ РЕЖИМ ===================== */
+  let bulk = [];
+  let bulkEditing = -1;
+
+  $('tabOne').addEventListener('click', () => switchTab(true));
+  $('tabMany').addEventListener('click', () => switchTab(false));
+  function switchTab(one){
+    $('tabOne').classList.toggle('on', one);
+    $('tabMany').classList.toggle('on', !one);
+    $('paneOne').classList.toggle('hidden', !one);
+    $('paneMany').classList.toggle('hidden', one);
+    $('result').classList.toggle('hidden', !one || !current);
+  }
+
+  async function readDocx(buf){
+    const dv = new DataView(buf), dec = new TextDecoder('utf-8');
+    let eocd = -1;
+    for (let i = buf.byteLength - 22; i >= 0 && i > buf.byteLength - 66000; i--){
+      if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error('это не похоже на .docx');
+    let off = dv.getUint32(eocd + 16, true);
+    const total = dv.getUint16(eocd + 10, true);
+    for (let n = 0; n < total; n++){
+      const nameLen = dv.getUint16(off + 28, true), extLen = dv.getUint16(off + 30, true),
+            comLen = dv.getUint16(off + 32, true), lho = dv.getUint32(off + 42, true),
+            method = dv.getUint16(off + 10, true), compSize = dv.getUint32(off + 20, true);
+      const name = dec.decode(new Uint8Array(buf, off + 46, nameLen));
+      if (name === 'word/document.xml'){
+        const lNameLen = dv.getUint16(lho + 26, true), lExtLen = dv.getUint16(lho + 28, true);
+        const dataStart = lho + 30 + lNameLen + lExtLen;
+        const raw = new Uint8Array(buf, dataStart, compSize);
+        let xml;
+        if (method === 0) xml = dec.decode(raw);
+        else {
+          const ds = new DecompressionStream('deflate-raw');
+          const ab = await new Response(new Blob([raw]).stream().pipeThrough(ds)).arrayBuffer();
+          xml = dec.decode(ab);
+        }
+        return xml.replace(/<\/w:p>/g, '\n')
+                  .replace(/<w:tab[^>]*\/>/g, ' ')
+                  .replace(/<[^>]+>/g, '')
+                  .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"');
+      }
+      off += 46 + nameLen + extLen + comLen;
+    }
+    throw new Error('внутри .docx не нашёлся текст документа');
+  }
+
+  const dropMany = $('dropMany');
+  dropMany.addEventListener('click', () => $('fileMany').click());
+  ['dragenter','dragover'].forEach(ev => dropMany.addEventListener(ev, e => { e.preventDefault(); dropMany.classList.add('hot'); }));
+  ['dragleave','drop'].forEach(ev => dropMany.addEventListener(ev, e => { e.preventDefault(); dropMany.classList.remove('hot'); }));
+  dropMany.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadMany(f); });
+  $('fileMany').addEventListener('change', e => { if (e.target.files[0]) loadMany(e.target.files[0]); });
+
+  async function loadMany(file){
+    $('manyStatus').textContent = isEn() ? 'Reading file…' : 'Читаю файл…';
+    try {
+      let text;
+      if (/\.docx$/i.test(file.name)) text = await readDocx(await file.arrayBuffer());
+      else text = await file.text();
+      $('pasteMany').value = text;
+      $('manyStatus').textContent = '';
+      runBulk();
+    } catch(e){
+      $('manyStatus').textContent = (isEn() ? 'Could not read: ' : 'Не удалось прочитать: ') + e.message + (isEn() ? '. Copy the text from Word and paste it below.' : '. Скопируйте текст из Word и вставьте в поле ниже.');
+    }
+  }
+
+  $('btnMany').addEventListener('click', runBulk);
+  $('onlyCheck').addEventListener('change', renderBulk);
+
+  function runBulk(){
+    const text = $('pasteMany').value;
+    if (!norm(text)) return;
+    bulk = parseBibliography(text);
+    bulkEditing = -1;
+    const recs = bulk.filter(x => x.kind === 'record');
+    $('cntAll').textContent   = recs.length;
+    $('cntOk').textContent    = recs.filter(r => r.confidence === 'ok').length;
+    $('cntCheck').textContent = recs.filter(r => r.confidence === 'check').length;
+    $('cntFail').textContent  = recs.filter(r => r.confidence === 'fail').length;
+    $('manyResult').classList.remove('hidden');
+    renderBulk();
+  }
+
+  const TYPE_RU = { JOUR:'статья', BOOK:'книга', CHAP:'глава', CPAPER:'доклад',
+                    THES:'дис.', MANSCPT:'архив', NEWS:'газета', ELEC:'ресурс' };
+  const TYPE_EN = { JOUR:'article', BOOK:'book', CHAP:'chapter', CPAPER:'paper',
+                    THES:'thesis', MANSCPT:'archive', NEWS:'newspaper', ELEC:'web' };
+
+  function renderBulk(){
+    const body = $('bibBody'); body.innerHTML = '';
+    const only = $('onlyCheck').checked;
+    bulk.forEach((it, i) => {
+      const tr = document.createElement('tr');
+      if (it.kind === 'header'){
+        if (only) return;
+        tr.className = 'sec';
+        tr.innerHTML = '<td colspan="5"></td>';
+        tr.firstChild.textContent = it.text;
+      } else {
+        if (only && it.confidence === 'ok') return;
+        tr.className = 'pick';
+        const au = (it.authors || []).map(a => a.family).join(', ') || (it.noAuthor ? '—' : '');
+        tr.innerHTML = '<td></td><td></td><td></td><td></td><td></td>';
+        const td = tr.children;
+        td[0].innerHTML = '<span class="st ' + it.confidence + '"></span>' + (i + 1);
+        td[1].textContent = au;
+        td[2].textContent = (it.title || (isEn() ? '(could not parse)' : '(не разобралось)')).slice(0, 150);
+        td[3].textContent = it.year || '';
+        td[4].textContent = (isEn() ? TYPE_EN : TYPE_RU)[it.type] || it.type;
+        tr.addEventListener('click', () => openEditor(i));
+      }
+      body.appendChild(tr);
+    });
+  }
+
+  function openEditor(i){
+    bulkEditing = i;
+    const r = bulk[i], box = $('editBox');
+    box.innerHTML = '';
+    const d = document.createElement('div'); d.className = 'edit';
+    const lbl = isEn()
+      ? ['Original string', 'Authors', 'Title', 'Container', 'Year', 'Pages', 'Save', 'Close']
+      : ['Исходная строка', 'Авторы', 'Заглавие', 'Источник', 'Год', 'Стр.', 'Сохранить', 'Закрыть'];
+    d.innerHTML =
+      '<div class="tiny" style="margin-bottom:8px">' + lbl[0] + ': ' +
+        (r.raw || '').replace(/[<>]/g,'') + '</div>' +
+      '<div class="grid">' +
+      '<label class="fl">' + lbl[1] + '</label><div><input type="text" id="e_au"></div>' +
+      '<label class="fl">' + lbl[2] + '</label><div><input type="text" id="e_ti"></div>' +
+      '<label class="fl">' + lbl[3] + '</label><div><input type="text" id="e_co"></div>' +
+      '<label class="fl">' + lbl[4] + ' / ' + lbl[5] + '</label><div class="row">' +
+        '<input type="text" id="e_yr" style="max-width:100px" placeholder="' + lbl[4] + '">' +
+        '<input type="text" id="e_pg" style="max-width:140px" placeholder="' + lbl[5] + '"></div>' +
+      '</div><div class="row" style="margin-top:10px">' +
+      '<button id="e_ok" class="btn-primary">' + lbl[6] + '</button>' +
+      '<button class="btn-ghost" id="e_no">' + lbl[7] + '</button></div>';
+    box.appendChild(d);
+    $('e_au').value = (r.authors || []).map(a => a.given ? a.family + ', ' + a.given : a.family).join('; ');
+    $('e_ti').value = r.title || '';
+    $('e_co').value = r.container || '';
+    $('e_yr').value = r.year || '';
+    $('e_pg').value = r.pages || r.numPages || '';
+    $('e_ok').addEventListener('click', () => {
+      r.authors = $('e_au').value.split(';').map(x => normalizeAuthor(x)).filter(Boolean);
+      r.title = $('e_ti').value.trim();
+      r.container = $('e_co').value.trim();
+      r.year = $('e_yr').value.trim();
+      r.pages = $('e_pg').value.trim();
+      r.confidence = r.title ? 'ok' : 'fail';
+      r.noAuthor = !r.authors.length;
+      box.innerHTML = '';
+      runCounts(); renderBulk();
+    });
+    $('e_no').addEventListener('click', () => { box.innerHTML = ''; });
+    box.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  function runCounts(){
+    const recs = bulk.filter(x => x.kind === 'record');
+    $('cntOk').textContent    = recs.filter(r => r.confidence === 'ok').length;
+    $('cntCheck').textContent = recs.filter(r => r.confidence === 'check').length;
+    $('cntFail').textContent  = recs.filter(r => r.confidence === 'fail').length;
+  }
+
+  function bulkRIS(onlyOk, english){
+    return bulk.filter(x => x.kind === 'record' && x.title && (!onlyOk || x.confidence === 'ok'))
+      .map(r => {
+        const c = Object.assign({}, r);
+        c.keywords = (r.keywords || []).slice();
+        if (r.section) c.keywords.push(r.section);
+        if (r.archive) c.keywords.push(r.archive);
+        return toRIS(english ? enRecord(c) : c, '');
+      }).join('\n');
+  }
+  $('btnRisAll').addEventListener('click', () => save('библиография.ris', bulkRIS(false), 'application/x-research-info-systems'));
+  $('btnRisOk').addEventListener('click',  () => save('библиография-готовые.ris', bulkRIS(true), 'application/x-research-info-systems'));
+  $('btnRisAllEn').addEventListener('click', () =>
+    save('bibliography-romanized.ris', bulkRIS(false, true), 'application/x-research-info-systems'));
+  $('btnCopyAll').addEventListener('click', async () => {
+    const t = bulkRIS(false);
+    const btn = $('btnCopyAll');
+    try { await navigator.clipboard.writeText(t); }
+    catch(e){ const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); ta.remove(); }
+    btn.textContent = isEn() ? 'Copied ✓' : 'Скопировано ✓';
+    setTimeout(() => { btn.innerHTML = '<span class="ru">Копировать всё</span><span class="en">Copy all</span>'; }, 2200);
+  });
+
+  $('btnBiblio').addEventListener('click', () => net(async () => {
+    const q = ($('paste').value.trim() || [$('f_authors').value, $('f_title').value,
+                $('f_container').value, $('f_year').value].filter(Boolean).join(' ')).trim();
+    if (!q) throw new Error(isEn() ? 'nothing to match — paste a citation string' : 'нечего распознавать — вставьте строку цитирования');
+    const r = await fetch('https://api.crossref.org/works?rows=1&select=DOI,title,author,container-title,issued,volume,issue,page,publisher,URL,type&query.bibliographic=' + encodeURIComponent(q));
+    if (!r.ok) throw new Error('Crossref ' + r.status);
+    const items = (await r.json()).message.items || [];
+    if (!items.length) throw new Error(isEn() ? 'no matches found' : 'совпадений не нашлось');
+    const m = items[0], rec = current ? collect() : { type:'JOUR', provenance:{}, warnings:[] };
+    if (m.title && m.title[0]){ rec.title = m.title[0]; rec.provenance.title = 'Crossref'; }
+    if (m.author){ rec.authors = m.author.map(a => ({ family:a.family||a.name||'', given:a.given||'' })); rec.provenance.authors = 'Crossref'; }
+    if (m['container-title'] && m['container-title'][0]){ rec.container = m['container-title'][0]; rec.provenance.container = 'Crossref'; }
+    const dp = (m.issued && m.issued['date-parts'] && m.issued['date-parts'][0]) || [];
+    if (dp[0]){ rec.year = String(dp[0]); rec.provenance.year = 'Crossref'; }
+    if (m.DOI){ rec.doi = m.DOI; rec.provenance.doi = 'Crossref'; }
+    if (m.volume) rec.volume = m.volume;
+    if (m.issue) rec.issue = m.issue;
+    if (m.page) rec.pages = m.page;
+    if (m.publisher) rec.publisher = m.publisher;
+    if (m.URL){ rec.url = m.URL; rec.provenance.url = 'Crossref'; }
+    if (m.type === 'book' || m.type === 'monograph') rec.type = 'BOOK';
+    else if (m.type === 'book-chapter') rec.type = 'CHAP';
+    rec.warnings = [isEn()
+      ? 'Record found in Crossref by citation string — citation style did not matter. Always verify the title and authors: matching is approximate and the first result is not always correct.'
+      : 'Запись найдена в Crossref по описанию — стиль цитирования роли не играл. Обязательно сверьте заглавие и авторов: сопоставление приблизительное, и первый результат не всегда верный.'];
+    show(rec);
+  }, 'Crossref'));
+
+  function save(name, content, mime){
+    const b = new Blob([content], {type:mime + ';charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
+  function baseName(){
+    const r = collect();
+    const t = (r && r.title ? r.title : 'источник').slice(0,60).replace(/[\\\/:*?"<>|]/g,'').trim();
+    return t || 'источник';
+  }
+  $('btnRis').addEventListener('click', () => save(baseName() + '.ris', toRIS(collect(), $('f_vault').value.trim()), 'application/x-research-info-systems'));
+  $('btnMd').addEventListener('click', () => {
+    const r = collect();
+    const fm = ['---',
+      'title: "' + (r.title||'').replace(/"/g,'\\"') + '"',
+      'authors: [' + (r.authors||[]).map(a=>'"'+a.family+(a.given?', '+a.given:'')+'"').join(', ') + ']',
+      'journal: "' + (r.container||'') + '"',
+      'year: ' + (r.year||''),
+      r.doi ? 'doi: ' + r.doi : null,
+      r.url ? 'source: ' + r.url : null,
+      '---',''].filter(x=>x!==null).join('\n');
+    save(baseName() + '.md', fm + (current && current.cleanBody ? current.cleanBody : ''), 'text/markdown');
+  });
+  $('btnCopy').addEventListener('click', async () => {
+    const txt = toRIS(collect(), $('f_vault').value.trim());
+    const btn = $('btnCopy');
+    try { await navigator.clipboard.writeText(txt); }
+    catch(e){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); ta.remove(); }
+    btn.textContent = isEn() ? 'Copied ✓' : 'Скопировано ✓';
+    setTimeout(()=>{ btn.innerHTML = '<span class="ru">Копировать RIS</span><span class="en">Copy RIS</span>'; }, 2200);
+  });
+}
+
+if (typeof module !== 'undefined' && module.exports){
+  module.exports = { parseGost, parseBibliography, isSectionHeader,
+    parseFrontmatter, detectSource, normalizeAuthor, splitBibliography,
+    stripElibrarySession, parseCyberleninka, parseElibrary, parseCitationString, buildRecord, toRIS,
+    translit, TL_SCHEMES, toEnglishRecord, apaPreview, hasCyrillic, tlSimplify };
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Переключатель языка
+   ════════════════════════════════════════════════════════════════ */
+function setLang(lang) {
+  document.documentElement.lang = lang;
+  document.documentElement.classList.remove('lang-ru', 'lang-en');
+  document.documentElement.classList.add('lang-' + lang);
+  document.querySelectorAll('.lang-switch button').forEach(function(b) {
+    b.classList.toggle('on', b.dataset.lang === lang);
+  });
+  try { localStorage.setItem('reftidy_lang', lang); } catch(e) {}
+
+  const en = lang === 'en';
+
+  /* Select: тип записи */
+  const typeOpts = {
+    'JOUR':   ['Статья в журнале', 'Journal article'],
+    'CPAPER': ['Доклад в сборнике конференции', 'Conference paper'],
+    'CHAP':   ['Глава в книге', 'Book chapter'],
+    'BOOK':   ['Книга', 'Book'],
+    'THES':   ['Диссертация', 'Dissertation / thesis'],
+    'ELEC':   ['Электронный ресурс', 'Electronic resource']
+  };
+  const fType = document.getElementById('f_type');
+  if (fType) {
+    Array.from(fType.options).forEach(function(o) {
+      const pair = typeOpts[o.value];
+      if (pair) o.text = en ? pair[1] : pair[0];
+    });
+  }
+
+  /* Select: схемы */
+  const schemeOpts = [
+    ['ala-lc', 'ALA-LC — по умолчанию', 'ALA-LC — default'],
+    ['gost-b', 'ГОСТ 7.79-2000, система Б', 'GOST 7.79-2000, system B'],
+    ['bgn', 'BGN/PCGN', 'BGN/PCGN']
+  ];
+  ['tl_scheme', 'tl_scheme2'].forEach(function(id) {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    Array.from(sel.options).forEach(function(o) {
+      const found = schemeOpts.find(function(s){ return s[0] === o.value; });
+      if (found) o.text = en ? found[2] : found[1];
+    });
+  });
+
+  /* Placeholders */
+  const ph = {
+    'f_authors':  ['Фамилия, И. О. — по одному автору в строке', 'Last, I. O. — one author per line'],
+    'f_vault':    ['C:\\Users\\…\\Obsidian\\Vault  или  /home/…/Vault', 'C:\\Users\\…\\Obsidian\\Vault  or  /home/…/Vault']
+  };
+  Object.keys(ph).forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.placeholder = en ? ph[id][1] : ph[id][0];
+  });
+}
+
+/* Подсветить активную кнопку на старте */
+(function() {
+  var lang = document.documentElement.lang || 'ru';
+  document.querySelectorAll('.lang-switch button').forEach(function(b) {
+    b.classList.toggle('on', b.dataset.lang === lang);
+  });
+  if (lang === 'en') setLang('en');
+})();
+
+/* ── Кнопка «Наверх» ── */
+(function(){
+  var btt = document.getElementById('back-to-top');
+  window.addEventListener('scroll', function(){ btt.classList.toggle('visible', window.scrollY > 200); });
+  btt.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+})();
+
+</script>
+</body>
+</html>
