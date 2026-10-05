@@ -3,9 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Статья → Zotero: библиографическая карточка | RefTidy</title>
-<meta name="description" content="Собирает чистую библиографическую карточку из заметок Obsidian, строк «Цитировать», ссылок или DOI. На выходе – файл .ris для Zotero. Бесплатно, в браузере, данные не покидают устройство.">
+<title>RefTidy – библиография для Zotero без ручного набора</title>
+<meta name="description" content="Превращает описание источника – строку «Цитировать», ссылку, DOI или целый список литературы по ГОСТ – в файл .ris, который Zotero импортирует с выходными данными. Бесплатно, работает в браузере, данные не покидают устройство.">
 <meta name="robots" content="index, follow">
+<link rel="canonical" href="https://reftidy.urbantransmission.org/">
+
+<!-- Превью при отправке ссылки (Telegram, VK, WhatsApp, Slack, соцсети).
+     Эти теги читают роботы, которые не выполняют JS, поэтому язык здесь
+     один и переключателем РУ/EN не меняется. -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://reftidy.urbantransmission.org/">
+<meta property="og:site_name" content="Urban Transmission">
+<meta property="og:title" content="RefTidy – библиография для Zotero без ручного набора">
+<meta property="og:description" content="Строка «Цитировать», ссылка, DOI или список литературы по ГОСТ – на выходе файл .ris для Zotero. Работает в браузере, данные остаются у вас.">
+<meta property="og:image" content="https://reftidy.urbantransmission.org/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="RefTidy – подготовка библиографии для Zotero">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:locale:alternate" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RefTidy – библиография для Zotero без ручного набора">
+<meta name="twitter:description" content="Строка «Цитировать», ссылка, DOI или список литературы по ГОСТ – на выходе файл .ris для Zotero.">
+<meta name="twitter:image" content="https://reftidy.urbantransmission.org/share.png">
+
+<!-- Значок сайта. Файлы положить рядом с index.html, в корень домена. -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/favicon-16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#2C1A0B">
 
 <!-- Prevent flash of wrong language -->
 <script>
@@ -375,8 +405,8 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
     <span class="en">Load bibliography as a list</span>
   </h2>
   <p class="hint">
-    <span class="ru">Для случая, когда записей сотни: список литературы из диссертации, статьи или курсовой. Разбирает оформление по ГОСТ 7.1 – книги, статьи, главы в сборниках, диссертации, архивные дела. Заголовки разделов распознаются и переносятся в Zotero метками, так что структура списка не теряется.</span>
-    <span class="en">For when you have hundreds of entries: the reference list from a dissertation, article, or term paper. Parses GOST 7.1 formatting – books, articles, book chapters, dissertations, archival files. Section headings are recognised and transferred to Zotero as tags, so the list structure is preserved.</span>
+    <span class="ru">Если у вас сотни записей: список литературы из диссертации, статьи или курсовой. Разбирает оформление по ГОСТ – книги, статьи, главы в сборниках, диссертации, архивные дела. Заголовки разделов распознаются и переносятся в Zotero метками, так что структура списка не теряется.</span>
+    <span class="en">If you have hundreds of entries: the reference list from a dissertation, article, or term paper. Parses GOST formatting – books, articles, book chapters, dissertations, archival files. Section headings are recognised and transferred to Zotero as tags, so the list structure is preserved.</span>
   </p>
   <div id="dropMany">
     <span class="ru">Перетащите сюда <b>.txt</b>, <b>.md</b> или <b>.docx</b> со списком<br><span class="tiny">или нажмите, чтобы выбрать файл</span></span>
