@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Страница не найдена — Codebook &amp; Survey Tidier</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+  :root{
+    --ink:#2b2620; --muted:#7a7163; --faint:#93897a;
+    --accent:#9c7a3c; --accent-deep:#6b5228; --accent-soft:rgba(156,122,60,.12);
+    --line:rgba(120,100,70,.18); --hero-bg:#2C1A0B; --gold-bright:#e3b969;
+    --serif:Cambria,Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;flex-direction:column;font-family:var(--serif);color:var(--ink);
+    background:#f7f2e7;
+    background-image:
+      radial-gradient(ellipse 900px 700px at 10% -5%, rgba(255,247,225,.9), transparent 60%),
+      radial-gradient(ellipse 800px 800px at 100% 30%, rgba(255,250,235,.7), transparent 55%),
+      radial-gradient(ellipse 900px 900px at 30% 110%, rgba(250,240,215,.6), transparent 60%);
+    background-attachment:fixed;
+  }
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .hero-band{width:100%;height:clamp(70px,12vw,140px);background:var(--hero-bg)}
+  main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+  .card{max-width:520px;text-align:center;background:rgba(255,255,255,.5);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
+    border:1px solid rgba(255,255,255,.65);border-radius:22px;box-shadow:0 8px 32px rgba(120,90,40,.10);padding:48px 36px}
+  .code{font-size:56px;font-weight:700;color:var(--accent);letter-spacing:.02em;margin:0 0 10px}
+  h1{font-size:22px;margin:0 0 12px}
+  p{color:var(--muted);font-size:15px;line-height:1.6;margin:0 0 26px}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fbf8f2;border-radius:999px;
+    padding:12px 24px;font-weight:600;font-size:14.5px;text-decoration:none;min-height:44px;transition:transform .15s}
+  .btn:hover{transform:translateY(-2px)}
+  footer{background:var(--hero-bg);padding:22px;text-align:center;font-size:13px;color:rgba(227,185,105,.55)}
+  footer a{color:var(--gold-bright);text-decoration:none;font-weight:600}
+  footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="hero-band"></div>
+<main>
+  <div class="card">
+    <p class="code">404</p>
+    <h1>Страница не найдена</h1>
+    <p>Такой страницы нет — возможно, ссылка устарела или в адресе опечатка. Сам инструмент работает как обычно.</p>
+    <a class="btn" href="index.html">← Вернуться к инструменту</a>
+  </div>
+</main>
+<footer>© 2026 Анна Агафонова, к.и.н. · <a href="https://urbantransmission.org" target="_blank" rel="noopener noreferrer">urbantransmission.org</a></footer>
+</body>
+</html>
