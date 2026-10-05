@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RefTidy – библиография для Zotero без ручного набора</title>
-<meta name="description" content="Превращает описание источника – строку «Цитировать», ссылку, DOI или целый список литературы по ГОСТ – в файл .ris, который Zotero импортирует с выходными данными. Бесплатно, работает в браузере, данные не покидают устройство.">
+<meta name="description" content="Превращает описание источника – строку «Цитировать», ссылку, DOI или целый список литературы – в файл .ris, который Zotero импортирует с выходными данными. Разбирает ГОСТ, Oxford, Chicago, APA, Harvard. Бесплатно, работает в браузере, данные не покидают устройство.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://reftidy.urbantransmission.org/">
 
@@ -15,7 +15,7 @@
 <meta property="og:url" content="https://reftidy.urbantransmission.org/">
 <meta property="og:site_name" content="Urban Transmission">
 <meta property="og:title" content="RefTidy – библиография для Zotero без ручного набора">
-<meta property="og:description" content="Строка «Цитировать», ссылка, DOI или список литературы по ГОСТ – на выходе файл .ris для Zotero. Работает в браузере, данные остаются у вас.">
+<meta property="og:description" content="Строка «Цитировать», ссылка, DOI или список литературы по ГОСТ, Oxford, Chicago, APA или Harvard – на выходе файл .ris для Zotero. Работает в браузере, данные остаются у вас.">
 <meta property="og:image" content="https://reftidy.urbantransmission.org/share.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -26,7 +26,7 @@
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="RefTidy – библиография для Zotero без ручного набора">
-<meta name="twitter:description" content="Строка «Цитировать», ссылка, DOI или список литературы по ГОСТ – на выходе файл .ris для Zotero.">
+<meta name="twitter:description" content="Строка «Цитировать», ссылка, DOI или список литературы по ГОСТ, Oxford, APA – на выходе файл .ris для Zotero.">
 <meta name="twitter:image" content="https://reftidy.urbantransmission.org/share.png">
 
 <!-- Значок сайта. Файлы положить рядом с index.html, в корень домена. -->
@@ -277,6 +277,12 @@ table.bib tr.pick{cursor:pointer}
 table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
 .st{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
 .st.ok{background:#3d6b3d}.st.check{background:#c49a2a}.st.fail{background:var(--warn)}
+.cf{display:inline-block;margin-left:6px;padding:0 5px;border-radius:3px;font-size:10px;
+    line-height:15px;vertical-align:2px;letter-spacing:.02em;white-space:nowrap}
+.cf.done{background:rgba(61,107,61,.13);color:#2f5530}
+.cf.sug{background:rgba(196,154,42,.16);color:#8a6a12}
+.cfcand{margin-bottom:10px;padding:10px 12px;border-radius:6px;background:var(--chip);
+        border:1px solid rgba(168,93,62,.22)}
 
 /* ── Inline editor ───────────────────────────────────────────────────── */
 .edit{
@@ -310,6 +316,22 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
 }
 .seo-block h2{font-weight:700;font-size:17px;margin-bottom:8px;color:var(--ink)}
 .seo-block p{font-size:14.5px;color:var(--muted);line-height:1.6}
+
+/* ── Раздел «Что умеет сервис» ────────────────────────────────────────── */
+.can{margin-top:40px;background:rgba(255,255,255,.42);
+     border:1px solid var(--line-light);border-radius:var(--radius);padding:22px 24px}
+.can > h2{font-weight:700;font-size:19px;margin-bottom:4px;color:var(--ink)}
+.can > p.lead{font-size:14.5px;color:var(--muted);line-height:1.6;margin-bottom:18px}
+.can h3{font-weight:700;font-size:15px;margin:18px 0 7px;color:var(--ink)}
+.can h3:first-of-type{margin-top:0}
+.can ul{list-style:none;margin:0;padding:0}
+.can li{font-size:14.5px;color:var(--muted);line-height:1.6;
+        padding-left:17px;position:relative;margin-bottom:5px}
+.can li::before{content:'';position:absolute;left:3px;top:9px;
+                width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.55}
+.can code{font-size:13px;background:var(--chip);padding:1px 4px;border-radius:3px}
+.can .lim{margin-top:20px;padding-top:16px;border-top:1px solid var(--line-light)}
+.can .lim h3{margin-top:0}
 
 /* ── Тизер ───────────────────────────────────────────────────────────── */
 .teaser{
@@ -382,8 +404,8 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
     <span class="en">RefTidy – bibliography for Zotero without retyping</span>
   </h1>
   <p class="sub">
-    <span class="ru">Собирает чистую библиографическую карточку из того, что у вас уже есть: строки «Цитировать», ссылки, DOI или заметки Obsidian. На выходе – файл <code>.ris</code>, который Zotero импортирует вместе с правильными выходными данными.</span>
-    <span class="en">Builds a clean bibliographic record from what you already have: citation strings, links, DOIs, or Obsidian notes. The output is a <code>.ris</code> file that Zotero imports with the publication details intact.</span>
+    <span class="ru">Собирает чистую библиографическую карточку из того, что у вас уже есть: строки «Цитировать», списка литературы целиком, ссылки, DOI или заметки Obsidian. Разбирает оформление по ГОСТ, Oxford, Chicago, APA и Harvard – стиль определяется сам. На выходе – файл <code>.ris</code>, который Zotero импортирует вместе с правильными выходными данными.</span>
+    <span class="en">Builds a clean bibliographic record from what you already have: a citation string, a whole bibliography, a link, a DOI, or an Obsidian note. Parses GOST, Oxford, Chicago, APA, and Harvard formatting – the style is detected for you. The output is a <code>.ris</code> file that Zotero imports with the publication details intact.</span>
   </p>
 </header>
 
@@ -405,8 +427,8 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
     <span class="en">Load bibliography as a list</span>
   </h2>
   <p class="hint">
-    <span class="ru">Если у вас сотни записей: список литературы из диссертации, статьи или курсовой. Разбирает оформление по ГОСТ – книги, статьи, главы в сборниках, диссертации, архивные дела. Заголовки разделов распознаются и переносятся в Zotero метками, так что структура списка не теряется.</span>
-    <span class="en">If you have hundreds of entries: the reference list from a dissertation, article, or term paper. Parses GOST formatting – books, articles, book chapters, dissertations, archival files. Section headings are recognised and transferred to Zotero as tags, so the list structure is preserved.</span>
+    <span class="ru">Если у вас сотни записей: список литературы из диссертации, статьи или курсовой. Стиль оформления определяется для каждой записи отдельно – ГОСТ, Oxford, Chicago, APA, Harvard, – поэтому смешанный список разбирается построчно. Различает книги, статьи, главы в сборниках, доклады, диссертации, архивные дела. Заголовки разделов распознаются и переносятся в Zotero метками, так что структура списка не теряется.</span>
+    <span class="en">If you have hundreds of entries: the reference list from a dissertation, article, or term paper. The citation style is detected per entry – GOST, Oxford, Chicago, APA, Harvard – so a mixed list is parsed line by line. Recognises books, articles, book chapters, conference papers, dissertations, archival files. Section headings are recognised and transferred to Zotero as tags, so the list structure is preserved.</span>
   </p>
   <div id="dropMany">
     <span class="ru">Перетащите сюда <b>.txt</b>, <b>.md</b> или <b>.docx</b> со списком<br><span class="tiny">или нажмите, чтобы выбрать файл</span></span>
@@ -439,7 +461,7 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
     <div id="editBox"></div>
     <div style="max-height:560px;overflow:auto;margin-top:8px">
       <table class="bib"><thead><tr>
-        <th style="width:34px">№</th>
+        <th style="width:72px;white-space:nowrap">№</th>
         <th style="width:150px"><span class="ru">Авторы</span><span class="en">Authors</span></th>
         <th><span class="ru">Заглавие</span><span class="en">Title</span></th>
         <th style="width:52px"><span class="ru">Год</span><span class="en">Year</span></th>
@@ -460,6 +482,17 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
         <span class="en">Copy all</span>
       </button>
     </div>
+    <div class="row" style="margin-top:10px;align-items:center">
+      <button class="btn-ghost" id="btnBulkCf">
+        <span class="ru">Дораспознать непонятные через Crossref</span>
+        <span class="en">Look up unparsed entries in Crossref</span>
+      </button>
+      <span class="tiny" id="cfStatus"></span>
+    </div>
+    <p class="tiny" style="margin-top:6px">
+      <span class="ru">Отправит в Crossref только те записи, что помечены «проверить» и «не разобрались», и только по нажатию. Поля подставляются, когда заглавие из Crossref действительно совпадает с вашей строкой; при частичном совпадении запись не меняется – вариант показывается в редакторе, принять его или отклонить решаете вы. Архивные дела не отправляются: в Crossref их нет.</span>
+      <span class="en">Sends only the entries marked "check" and "failed" to Crossref, and only when you click. Fields are filled in when the Crossref title genuinely matches your string; on a partial match nothing is changed – the candidate appears in the editor and you decide whether to accept it. Archival files are not sent: Crossref does not hold them.</span>
+    </p>
     <div class="row" style="margin-top:10px;align-items:center">
       <button class="btn-ghost" id="btnRisAllEn">
         <span class="ru">Скачать для англоязычной статьи</span>
@@ -797,6 +830,129 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
   <span class="ru">Карточка собирается по слоям: фронтматтер заметки → строка цитирования → разбор страницы сайта → уточнение по DOI или названию. Данные берутся только из того, что вы дали; запросы к Crossref и OpenAlex выполняются, лишь когда вы нажимаете соответствующую кнопку.</span>
   <span class="en">The record is built in layers: note frontmatter → citation string → page parsing → DOI or title lookup. Data is taken only from what you provide; Crossref and OpenAlex requests are made only when you click the corresponding button.</span>
 </p>
+
+<!-- ═══ ЧТО УМЕЕТ СЕРВИС ═══ -->
+<section class="can">
+  <h2>
+    <span class="ru">Что умеет сервис</span>
+    <span class="en">What the service does</span>
+  </h2>
+  <p class="lead">
+    <span class="ru">RefTidy не оформляет библиографию по стилю – это умеет сам Zotero. Он решает обратную задачу: разбирает уже оформленное описание на отдельные поля, чтобы Zotero получил запись с правильными авторами, заглавием, источником и выходными данными, а не одну строку в поле «Название».</span>
+    <span class="en">RefTidy does not format bibliographies to a style – Zotero already does that. It solves the inverse problem: it takes a reference that is already formatted and splits it back into separate fields, so that Zotero receives a record with proper authors, title, source, and publication details instead of one long string in the title field.</span>
+  </p>
+
+  <h3>
+    <span class="ru">С чего начать</span>
+    <span class="en">What you can start from</span>
+  </h3>
+  <ul>
+    <li><span class="ru">Строка библиографического описания – из кнопки «Цитировать» на сайте журнала, из сноски в чужой статье, из своего же старого списка.</span>
+        <span class="en">A single reference string – from a journal's "Cite" button, a footnote in someone else's article, or your own earlier list.</span></li>
+    <li><span class="ru">Список литературы целиком: файл <code>.txt</code>, <code>.md</code> или <code>.docx</code> либо текст, вставленный из Word. Сотни записей за один проход.</span>
+        <span class="en">A whole bibliography: a <code>.txt</code>, <code>.md</code>, or <code>.docx</code> file, or text pasted from Word. Hundreds of entries in one pass.</span></li>
+    <li><span class="ru">Заметка Obsidian, сделанная Web Clipper'ом: поля читаются из фронтматтера, а если клиппер его потерял – из блока метаданных в тексте заметки.</span>
+        <span class="en">An Obsidian note made with Web Clipper: fields are read from the frontmatter, or – if the clipper lost it – from the metadata block in the note body.</span></li>
+    <li><span class="ru">Ссылка на страницу статьи или один DOI.</span>
+        <span class="en">A link to an article page, or just a DOI.</span></li>
+  </ul>
+
+  <h3>
+    <span class="ru">Какие стили оформления разбирает</span>
+    <span class="en">Which citation styles it parses</span>
+  </h3>
+  <ul>
+    <li><span class="ru">ГОСТ – описания с областью ответственности через косую черту, статьи через двойную косую, сведения об издании через тире.</span>
+        <span class="en">GOST – the Russian standard: statement of responsibility after a slash, articles after a double slash, imprint after a dash.</span></li>
+    <li><span class="ru">Oxford и Chicago notes – «Автор, &lsquo;Заглавие&rsquo;, Журнал Том (Год), страницы», в том числе главы в сборниках и доклады на конференциях.</span>
+        <span class="en">Oxford and Chicago notes – "Author, &lsquo;Title&rsquo;, Journal Volume (Year), pages", including book chapters and conference papers.</span></li>
+    <li><span class="ru">APA и Harvard – «Автор (Год). Заглавие. Журнал, Том(Выпуск), страницы», с отдельной ветвью для книг.</span>
+        <span class="en">APA and Harvard – "Author (Year). Title. Journal, Volume(Issue), pages", with a separate branch for books.</span></li>
+    <li><span class="ru">Каталожные записи РНБ и РГБ – с пометками вида <code>[Текст]</code>, объёмом в сантиметрах, серией в скобках и ISBN в конце.</span>
+        <span class="en">Catalogue records from the Russian National and State Libraries – with markers such as <code>[Текст]</code>, dimensions in centimetres, a series in parentheses, and a trailing ISBN.</span></li>
+    <li><span class="ru">Стиль определяется для каждой записи отдельно, по её форме. Выбирать вкладку не нужно, и смешанный список – часть по ГОСТ, часть по-английски – разбирается построчно.</span>
+        <span class="en">The style is detected per entry, from its shape. There is no tab to choose, and a mixed list – part GOST, part English – is parsed line by line.</span></li>
+  </ul>
+
+  <h3>
+    <span class="ru">Какие типы записей различает</span>
+    <span class="en">Which record types it distinguishes</span>
+  </h3>
+  <ul>
+    <li><span class="ru">Книга и многотомное издание – с номером тома, числом томов и собственным заглавием тома.</span>
+        <span class="en">Books and multi-volume editions – with volume number, number of volumes, and the volume's own title.</span></li>
+    <li><span class="ru">Статья в журнале, глава или статья в сборнике, доклад на конференции, газетная публикация.</span>
+        <span class="en">Journal articles, book chapters and contributions to edited volumes, conference papers, newspaper pieces.</span></li>
+    <li><span class="ru">Диссертация и автореферат – со степенью и специальностью.</span>
+        <span class="en">Dissertations and their abstracts – with degree and field.</span></li>
+    <li><span class="ru">Архивное дело – номер фонда, описи и дела; заголовок раздела списка становится названием архива.</span>
+        <span class="en">Archival files – fond, inventory, and file numbers; the list's section heading becomes the archive name.</span></li>
+  </ul>
+
+  <h3>
+    <span class="ru">Что уточняет во внешних базах</span>
+    <span class="en">What it can look up in external databases</span>
+  </h3>
+  <ul>
+    <li><span class="ru">Crossref по DOI – подтягивает метаданные от самого издателя.</span>
+        <span class="en">Crossref by DOI – pulls the publisher's own metadata.</span></li>
+    <li><span class="ru">Crossref по описанию – находит запись по строке целиком, независимо от стиля цитирования.</span>
+        <span class="en">Crossref by reference string – finds the record from the whole string, whatever the citation style.</span></li>
+    <li><span class="ru">OpenAlex по названию – когда DOI нет.</span>
+        <span class="en">OpenAlex by title – when there is no DOI.</span></li>
+    <li><span class="ru">В массовом режиме – дораспознавание записей, помеченных «проверить» и «не разобрались»: поля подставляются только при настоящем совпадении заглавия, при частичном вариант показывается на подтверждение.</span>
+        <span class="en">In list mode – a lookup for entries marked "check" and "failed": fields are filled in only on a genuine title match, and on a partial one the candidate is shown for you to confirm.</span></li>
+    <li><span class="ru">Все запросы – только по нажатию кнопки. Сам файл со списком никуда не уходит: разбор идёт в вашем браузере.</span>
+        <span class="en">Every request happens only when you click. The file itself never leaves your machine: parsing runs in your browser.</span></li>
+  </ul>
+
+  <h3>
+    <span class="ru">Транслитерация для англоязычной статьи</span>
+    <span class="en">Romanisation for an English-language article</span>
+  </h3>
+  <ul>
+    <li><span class="ru">Три схемы: ALA-LC, ГОСТ 7.79-2000 система Б, BGN/PCGN – в полном виде с диакритикой или упрощённо, как печатают в журналах.</span>
+        <span class="en">Three schemes: ALA-LC, GOST 7.79-2000 system B, BGN/PCGN – either in full with diacritics or simplified, the way journals usually print them.</span></li>
+    <li><span class="ru">Кириллический оригинал уходит в примечание к записи вместе с названием схемы, так что ничего не теряется.</span>
+        <span class="en">The Cyrillic original goes into the record note together with the scheme's name, so nothing is lost.</span></li>
+    <li><span class="ru">Предпросмотр строки по APA 7 – чтобы сверить результат глазами до выгрузки.</span>
+        <span class="en">An APA 7 preview of the reference – so you can check the result before exporting.</span></li>
+  </ul>
+
+  <h3>
+    <span class="ru">Что получается на выходе</span>
+    <span class="en">What you get</span>
+  </h3>
+  <ul>
+    <li><span class="ru">Файл <code>.ris</code> – формат, который Zotero, Mendeley и EndNote импортируют без настроек.</span>
+        <span class="en">A <code>.ris</code> file – the format Zotero, Mendeley, and EndNote import without any setup.</span></li>
+    <li><span class="ru">Заголовки разделов списка переносятся метками, так что структура библиографии в Zotero не теряется.</span>
+        <span class="en">Section headings carry over as tags, so the structure of your bibliography survives the import.</span></li>
+    <li><span class="ru">Заметка <code>.md</code> с готовым фронтматтером для Obsidian и ссылка на файл в хранилище, если нужно связать запись Zotero с заметкой.</span>
+        <span class="en">A <code>.md</code> note with ready-made frontmatter for Obsidian, plus a link to the file in your vault if you want to tie the Zotero record to the note.</span></li>
+    <li><span class="ru">Шаблон для Obsidian Web Clipper – чтобы заметки сразу приходили с полями, которые сервису нужны.</span>
+        <span class="en">A template for Obsidian Web Clipper – so that new notes arrive with the fields the service needs.</span></li>
+  </ul>
+
+  <div class="lim">
+    <h3>
+      <span class="ru">Чего сервис не делает</span>
+      <span class="en">What the service does not do</span>
+    </h3>
+    <ul>
+      <li><span class="ru">Не достраивает то, чего нет в исходной строке. Если в описании не указан издатель, поле останется пустым, а не заполнится похожим.</span>
+          <span class="en">It does not invent what the source string lacks. If a reference gives no publisher, that field stays empty rather than being filled with something plausible.</span></li>
+      <li><span class="ru">Не обещает разобрать всё. Записи, в разборе которых есть сомнения, помечаются «проверить» – это не поломка, а отказ выдать поле, в котором сервис не уверен.</span>
+          <span class="en">It does not promise to parse everything. Entries it is unsure about are marked "check" – not a failure, but a refusal to emit a field it cannot vouch for.</span></li>
+      <li><span class="ru">Не переводит заглавия. Для англоязычной статьи перевод в квадратных скобках вписывает человек.</span>
+          <span class="en">It does not translate titles. For an English-language article, the bracketed translation is yours to write.</span></li>
+      <li><span class="ru">Не оформляет готовый список по ГОСТ, APA или другому стилю – для этого в Zotero есть стили цитирования.</span>
+          <span class="en">It does not format a finished list to GOST, APA, or any other style – Zotero's citation styles do that.</span></li>
+      <li><span class="ru">Любую запись можно поправить вручную до выгрузки.</span>
+          <span class="en">Any record can be corrected by hand before export.</span></li>
+    </ul>
+  </div>
+</section>
 
 <!-- ═══ SEO-БЛОКИ ═══ -->
 <div class="seo-blocks">
@@ -1556,6 +1712,133 @@ function parseGost(raw, ctx){
 }
 
 /* Разбор всего списка с учётом заголовков разделов и архивов */
+
+/* ============ Другие стили оформления, кроме ГОСТ ====================
+   Разбираем не «стиль по названию», а форму записи: у пользователя редко
+   есть ответ на вопрос «это Chicago или MHRA», зато форма видна глазом
+   и машине. Каждая строка списка проверяется отдельно, поэтому смешанный
+   список (часть по ГОСТ, часть по-английски) разбирается построчно. */
+
+const Q_OPEN  = "'‘“«„\"";
+const Q_CLOSE = "'’”»“\"";
+const PAGES_RE = '(\\d+(?:\\s*[-‐–—−]\\s*\\d+)?)';
+
+/* Имена вида «J. Hillier», «J.C. Brown», «A. B. Smith-Jones» */
+function personsInitialsFirst(part){
+  const out = [];
+  const re = /((?:[A-Z]\.\s*){1,3})\s*([A-Z][A-Za-zÀ-ɏ'’-]+(?:\s+[A-Z][A-Za-zÀ-ɏ'’-]+)?)/g;
+  let m;
+  while ((m = re.exec(part))){
+    out.push({ family: m[2].trim(), given: m[1].replace(/\s+/g,' ').trim() });
+  }
+  return out;
+}
+
+/* «J. Hillier, 'Заглавие', Urban History 41 (2014), 228-246.»
+   Закрывающая кавычка всегда стоит перед запятой — на этом и держимся,
+   иначе апостроф внутри заглавия («Britain's water») рвёт разбор. */
+function parseQuotedStyle(raw){
+  const s = norm(raw).replace(/[.;]\s*$/,'');
+  const m = new RegExp('^([^' + Q_OPEN + ']{2,120}?)\\s*,\\s*[' + Q_OPEN + ']([\\s\\S]+)[' + Q_CLOSE + ']\\s*,\\s*(.+)$').exec(s);
+  if (!m) return null;
+
+  const rec = { type:'JOUR', provenance:{}, warnings:[], confidence:'ok', raw: norm(raw) };
+  const P = f => rec.provenance[f] = 'описание в кавычках';
+
+  const authors = personsInitialsFirst(m[1]);
+  if (authors.length){ rec.authors = authors; P('authors'); }
+  rec.title = norm(m[2]).replace(/[,.;]\s*$/,''); P('title');
+
+  /* Хвост: «Источник Том (Год), страницы» либо «Источник (Город, Год), страницы» */
+  const tail = norm(m[3]);
+  const t = /^(.*?)\s*\(([^)]*\b(?:1[5-9]\d{2}|20\d{2})\b[^)]*)\)\s*,?\s*(.*)$/.exec(tail);
+  if (!t){ rec.confidence = 'check'; return rec; }
+
+  let head = norm(t[1]).replace(/[,;]\s*$/,'');
+  const inside = norm(t[2]);
+  const after = norm(t[3]);
+
+  const year = /(1[5-9]\d{2}|20\d{2})/.exec(inside);
+  if (year){ rec.year = year[1]; P('year'); }
+
+  // в скобках есть ещё что-то, кроме года, — это место издания: глава или доклад
+  const place = inside.replace(/(1[5-9]\d{2}|20\d{2})/, '').replace(/[,;\s]+$/,'').replace(/^[,;\s]+/,'');
+  if (place){
+    rec.place = place;
+    rec.type = /congress|conference|proceedings|symposium|съезд|конференц/i.test(head) ? 'CPAPER' : 'CHAP';
+  } else {
+    const vol = /\s(\d{1,4})$/.exec(head);
+    if (vol){ rec.volume = vol[1]; head = norm(head.slice(0, vol.index)); }
+  }
+  if (head){ rec.container = head; P('container'); }
+
+  const pg = new RegExp('^' + PAGES_RE).exec(after);
+  if (pg) rec.pages = pg[1].replace(/\s*[-‐–—−]\s*/,'-');
+
+  if (!rec.container || !rec.year) rec.confidence = 'check';
+  return rec;
+}
+
+/* «Hillier, J. (2014). Заглавие. Urban History, 41(2), 228-246.» — APA и родственные */
+function parseAuthorDate(raw){
+  const s = norm(raw);
+  const m = /^(.{3,160}?)\s*\((\d{4})[a-z]?\)\.\s*(.+?)\.\s+(.+)$/.exec(s);
+  if (!m) return null;
+
+  const rec = { type:'JOUR', provenance:{}, warnings:[], confidence:'ok', raw: s };
+  const P = f => rec.provenance[f] = 'описание «автор — год»';
+
+  const authors = [];
+  m[1].split(/\s*(?:,\s*&|&|;| and )\s*/).forEach(p => {
+    const a = /^([A-ZА-Я][A-Za-zÀ-ɏа-яА-Я'’-]+)\s*,\s*((?:[A-Z]\.\s*){1,3})$/.exec(norm(p).replace(/[.,]\s*$/,'.'));
+    if (a) authors.push({ family: a[1], given: norm(a[2]) });
+  });
+  if (authors.length){ rec.authors = authors; P('authors'); }
+  rec.year = m[2]; P('year');
+  rec.title = norm(m[3]); P('title');
+
+  const tail = norm(m[4]).replace(/\s*https?:\/\/\S+\s*$/,'');
+  const t = new RegExp('^(.+?),\\s*(\\d{1,4})(?:\\s*\\(([^)]+)\\))?,\\s*' + PAGES_RE).exec(tail);
+  if (t){
+    rec.container = norm(t[1]); P('container');
+    rec.volume = t[2];
+    if (t[3]) rec.issue = t[3];
+    rec.pages = t[4].replace(/\s*[-‐–—−]\s*/,'-');
+  } else if (/^[^,]{2,60}\.?\s*$/.test(tail) && !/\d/.test(tail)){
+    // хвост без тома и страниц, короткий и без цифр — это издательство, а не журнал
+    rec.type = 'BOOK';
+    rec.publisher = norm(tail).replace(/\.\s*$/,'');
+    rec.provenance.publisher = 'описание «автор — год»';
+  } else {
+    const c = /^([^,.]{3,120})/.exec(tail);
+    if (c){ rec.container = norm(c[1]); P('container'); }
+    rec.confidence = 'check';
+  }
+  if (!rec.authors || !rec.title) rec.confidence = 'check';
+  return rec;
+}
+
+/* Выбор формы по виду строки. Порядок важен: ГОСТ опознаётся первым,
+   потому что его признаки (« // », « – 616 с.») самые однозначные. */
+function parseAnyStyle(raw, ctx){
+  const s = norm(raw);
+  const looksGost = /\s\/\/\s|\s\/\s|[–—]\s*\d+\s*с\./.test(s)
+                 || /^Ф\.\s*\d+/.test(s);
+  if (!looksGost){
+    const quoted = new RegExp('[' + Q_OPEN + '][\\s\\S]{10,}[' + Q_CLOSE + ']\\s*,').test(s)
+                && /\((?:[^)]*\b(?:1[5-9]\d{2}|20\d{2})\b[^)]*)\)/.test(s);
+    if (quoted){
+      const r = parseQuotedStyle(s);
+      if (r && r.title) return r;
+    }
+    if (/\(\d{4}[a-z]?\)\.\s/.test(s)){
+      const r = parseAuthorDate(s);
+      if (r && r.title) return r;
+    }
+  }
+  return parseGost(s, ctx);
+}
+
 function parseBibliography(text){
   const out = [];
   let section = '', archive = '';
@@ -1568,7 +1851,7 @@ function parseBibliography(text){
       out.push({ kind:'header', text:s });
       continue;
     }
-    const rec = parseGost(s, { section, archive });
+    const rec = parseAnyStyle(s, { section, archive });
     if (rec){ rec.kind = 'record'; out.push(rec); }
   }
   return out;
@@ -2091,8 +2374,16 @@ if (typeof document !== 'undefined'){
     const looksGost = /\s\/\/\s|\s\/\s|[–—]\s*\d+\s*с\./.test(v);
     const looksSite = /дата обращения|дата доступа|accessed|URL\s*:/i.test(v)
       || (/\s\/\/\s/.test(v) && !/[–—−]\s*(?:1[5-9]\d{2}|20\d{2}|№|Вып\.|Т\.\s*\d|С\.\s*\d|P{1,2}\.\s*\d)/.test(v));
-    const rec = (looksGost && !looksSite) ? parseGost(v, {}) : parseCitationString(v);
-    if (!looksGost && !/^10\./.test(v)){
+    /* Сначала пробуем формы, которые опознаются по виду строки:
+       заглавие в кавычках и «автор — год». Если ни одна не подошла,
+       остаётся прежнее деление на ГОСТ и строку с сайта. */
+    const byShape = looksSite ? null : parseAnyStyle(v, {});
+    const shaped = byShape && byShape.provenance
+                && /кавычках|автор — год/.test(Object.values(byShape.provenance).join(' '));
+    const rec = shaped ? byShape
+              : (looksGost && !looksSite) ? parseGost(v, {})
+              : parseCitationString(v);
+    if (!shaped && !looksGost && !/^10\./.test(v)){
       rec.warnings = (rec.warnings || []).concat(
         isEn() ? 'This does not look like GOST format (possibly APA, Chicago, MLA). Parsing by template is unreliable here – try "Match citation string (Crossref)" for style-independent matching.'
                : 'Похоже, это не ГОСТ, а другой стиль (APA, Chicago, MLA). Разбор по шаблону здесь ненадёжен – нажмите «Распознать описание (Crossref)»: он сопоставит строку со своей базой независимо от стиля.');
@@ -2282,8 +2573,15 @@ if (typeof document !== 'undefined'){
         const au = (it.authors || []).map(a => a.family).join(', ') || (it.noAuthor ? '–' : '');
         tr.innerHTML = '<td></td><td></td><td></td><td></td><td></td>';
         const td = tr.children;
+        td[0].style.whiteSpace = 'nowrap';
         td[0].innerHTML = '<span class="st ' + it.confidence + '"></span>' + (i + 1);
         td[1].textContent = au;
+        if (it.cfApplied)
+          td[0].insertAdjacentHTML('beforeend',
+            '<span class="cf done" title="' + (isEn() ? 'filled in from Crossref' : 'поля уточнены по Crossref') + '">CR</span>');
+        else if (it.cfSuggest)
+          td[0].insertAdjacentHTML('beforeend',
+            '<span class="cf sug" title="' + (isEn() ? 'Crossref candidate awaiting your decision' : 'есть вариант из Crossref – нужно ваше решение') + '">CR?</span>');
         td[2].textContent = (it.title || (isEn() ? '(could not parse)' : '(не разобралось)')).slice(0, 150);
         td[3].textContent = it.year || '';
         td[4].textContent = (isEn() ? TYPE_EN : TYPE_RU)[it.type] || it.type;
@@ -2314,7 +2612,40 @@ if (typeof document !== 'undefined'){
       '</div><div class="row" style="margin-top:10px">' +
       '<button id="e_ok" class="btn-primary">' + lbl[6] + '</button>' +
       '<button class="btn-ghost" id="e_no">' + lbl[7] + '</button></div>';
+    if (r.cfSuggest){
+      const c = r.cfSuggest.cand;
+      const cand = document.createElement('div');
+      cand.className = 'cfcand';
+      const line = [ c.authors.map(a => a.family).join(', '), c.title,
+                     c.container, c.year,
+                     c.volume ? (isEn() ? 'vol. ' : 'т. ') + c.volume : '',
+                     c.pages ? (isEn() ? 'pp. ' : 'с. ') + c.pages : '' ]
+                   .filter(Boolean).join('. ');
+      cand.innerHTML =
+        '<div class="tiny" style="margin-bottom:6px"><b>' +
+          (isEn() ? 'Crossref candidate' : 'Вариант из Crossref') + '</b> – ' +
+          (isEn() ? 'title overlap ' : 'совпадение заглавия ') + r.cfSuggest.cover + '%' +
+          (r.cfSuggest.yearOk ? '' : (isEn() ? ', year differs' : ', год не совпадает')) +
+        '</div><div style="margin-bottom:8px">' + line.replace(/[<>]/g,'') + '</div>' +
+        (c.doi ? '<div class="tiny" style="margin-bottom:8px">DOI ' + c.doi + '</div>' : '') +
+        '<div class="tiny" style="margin-bottom:8px">' +
+          (isEn() ? 'Accepting replaces the fields below. The match is approximate – compare it with the original string above.'
+                  : 'Если принять, поля ниже будут заменены. Сопоставление приблизительное – сверьте с исходной строкой выше.') +
+        '</div><div class="row">' +
+        '<button id="cf_yes" class="btn-primary">' + (isEn() ? 'Accept' : 'Принять') + '</button>' +
+        '<button id="cf_no" class="btn-ghost">' + (isEn() ? 'Reject' : 'Отклонить') + '</button></div>';
+      d.insertBefore(cand, d.firstChild);
+    }
     box.appendChild(d);
+    if (r.cfSuggest){
+      $('cf_yes').addEventListener('click', () => {
+        cfApply(r, r.cfSuggest.cand);
+        box.innerHTML = ''; runCounts(); renderBulk(); openEditor(i);
+      });
+      $('cf_no').addEventListener('click', () => {
+        r.cfSuggest = null; box.innerHTML = ''; renderBulk();
+      });
+    }
     $('e_au').value = (r.authors || []).map(a => a.given ? a.family + ', ' + a.given : a.family).join('; ');
     $('e_ti').value = r.title || '';
     $('e_co').value = r.container || '';
@@ -2341,6 +2672,164 @@ if (typeof document !== 'undefined'){
     $('cntCheck').textContent = recs.filter(r => r.confidence === 'check').length;
     $('cntFail').textContent  = recs.filter(r => r.confidence === 'fail').length;
   }
+
+  /* ───────── Дораспознавание непонятных записей через Crossref ─────────
+     Crossref по запросу query.bibliographic всегда возвращает лучший из
+     имеющихся вариантов, даже когда он не имеет к строке никакого отношения.
+     Поэтому ответ принимается не на доверии, а по совпадению: сколько слов
+     заглавия Crossref нашлось в исходной строке и совпал ли год.
+     Высокое совпадение – поля подставляются. Частичное – запись не меняется,
+     вариант уходит в редактор на решение человека. */
+
+  const CF_STOP = new Set(['the','a','an','of','in','on','and','or','for','to','with','from',
+                           'при','для','как','что','это','над','под','без','про','из','на','по','и','в','с','о']);
+
+  function cfTokens(s){
+    return String(s || '').toLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, ' ')
+      .split(' ')
+      .filter(w => w.length > 2 && !CF_STOP.has(w));
+  }
+
+  /* Доля слов заглавия Crossref, которые есть в исходной строке записи */
+  function cfCover(cfTitle, rawStr){
+    const want = cfTokens(cfTitle);
+    if (want.length < 2) return 0;
+    const have = new Set(cfTokens(rawStr));
+    let hit = 0;
+    want.forEach(w => { if (have.has(w)) hit++; });
+    return hit / want.length;
+  }
+
+  function cfQuery(r){
+    const raw = norm(r.raw || '');
+    if (raw) return raw.slice(0, 320);
+    return [ (r.authors || []).map(a => a.family).join(' '), r.title, r.container, r.year ]
+      .filter(Boolean).join(' ').slice(0, 320);
+  }
+
+  /* Запись, которую бессмысленно или опасно отправлять */
+  function cfSkip(r){
+    if (r.type === 'MANSCPT' || r.archive) return true;          // архивное дело
+    if (!cfTokens(cfQuery(r)).length) return true;               // нечего спросить
+    return false;
+  }
+
+  function cfCandidate(m){
+    const dp = (m.issued && m.issued['date-parts'] && m.issued['date-parts'][0]) || [];
+    return {
+      title:     (m.title && m.title[0]) || '',
+      authors:   (m.author || []).map(a => ({ family:a.family || a.name || '', given:a.given || '' })),
+      container: (m['container-title'] && m['container-title'][0]) || '',
+      year:      dp[0] ? String(dp[0]) : '',
+      doi:       m.DOI || '',
+      volume:    m.volume || '',
+      issue:     m.issue || '',
+      pages:     m.page || '',
+      publisher: m.publisher || '',
+      url:       m.URL || '',
+      type:      m.type === 'book' || m.type === 'monograph' ? 'BOOK'
+               : m.type === 'book-chapter' ? 'CHAP'
+               : m.type === 'proceedings-article' ? 'CPAPER' : 'JOUR'
+    };
+  }
+
+  function cfApply(r, c){
+    r.provenance = r.provenance || {};
+    if (c.title){     r.title = c.title;          r.provenance.title = 'Crossref'; }
+    if (c.authors.length){ r.authors = c.authors; r.noAuthor = false; r.provenance.authors = 'Crossref'; }
+    if (c.container){ r.container = c.container;  r.provenance.container = 'Crossref'; }
+    if (c.year){      r.year = c.year;            r.provenance.year = 'Crossref'; }
+    if (c.doi){       r.doi = c.doi;              r.provenance.doi = 'Crossref'; }
+    if (c.volume)    r.volume = c.volume;
+    if (c.issue)     r.issue = c.issue;
+    if (c.pages)     r.pages = c.pages;
+    if (c.publisher) r.publisher = c.publisher;
+    if (c.url && !r.url) r.url = c.url;
+    if (c.type)      r.type = c.type;
+    r.notes = (r.notes || []).concat(isEn()
+      ? 'Fields completed from Crossref' + (c.doi ? ' (DOI ' + c.doi + ')' : '')
+        + '. Original string: ' + norm(r.raw || '')
+      : 'Поля дополнены по Crossref' + (c.doi ? ' (DOI ' + c.doi + ')' : '')
+        + '. Исходная строка: ' + norm(r.raw || ''));
+    r.confidence = 'ok';
+    r.cfApplied  = true;
+    r.cfSuggest  = null;
+  }
+
+  async function cfFetch(q){
+    const url = 'https://api.crossref.org/works?rows=3'
+              + '&select=DOI,title,author,container-title,issued,volume,issue,page,publisher,URL,type'
+              + '&query.bibliographic=' + encodeURIComponent(q);
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('Crossref ' + r.status);
+    return ((await r.json()).message.items) || [];
+  }
+
+  let cfBusy = false;
+
+  $('btnBulkCf').addEventListener('click', async () => {
+    if (cfBusy) return;
+    const st = $('cfStatus');
+    const targets = [];
+    bulk.forEach((r, i) => {
+      if (r.kind !== 'record') return;
+      if (r.confidence === 'ok' || r.cfApplied) return;
+      if (cfSkip(r)) return;
+      targets.push(i);
+    });
+    if (!targets.length){
+      st.textContent = isEn()
+        ? 'Nothing to look up: no entries need review, or the remaining ones are archival.'
+        : 'Дораспознавать нечего: записей на проверку нет, а оставшиеся – архивные дела.';
+      setTimeout(() => { st.textContent = ''; }, 7000);
+      return;
+    }
+    const CAP = 60;
+    const list = targets.slice(0, CAP);
+    cfBusy = true;
+    $('btnBulkCf').disabled = true;
+    let applied = 0, suggested = 0, missed = 0, failed = 0;
+
+    for (let n = 0; n < list.length; n++){
+      const i = list[n], r = bulk[i];
+      st.textContent = (isEn() ? 'Crossref: ' : 'Crossref: ') + (n + 1) + ' / ' + list.length;
+      try {
+        const items = await cfFetch(cfQuery(r));
+        let best = null, bestCov = 0;
+        items.forEach(m => {
+          const c = cfCandidate(m);
+          const cov = cfCover(c.title, cfQuery(r));
+          if (cov > bestCov){ bestCov = cov; best = c; }
+        });
+        const yearOk = !r.year || !best || !best.year || r.year === best.year;
+        if (best && bestCov >= 0.75 && yearOk){ cfApply(r, best); applied++; }
+        else if (best && bestCov >= 0.45){
+          r.cfSuggest = { cand: best, cover: Math.round(bestCov * 100), yearOk: yearOk };
+          suggested++;
+        } else missed++;
+      } catch(e){
+        failed++;
+        if (/429/.test(e.message)) { await new Promise(s => setTimeout(s, 3000)); }
+      }
+      await new Promise(s => setTimeout(s, 260));   // вежливая пауза между запросами
+    }
+
+    cfBusy = false;
+    $('btnBulkCf').disabled = false;
+    runCounts(); renderBulk();
+
+    const parts = isEn()
+      ? [ applied + ' filled in', suggested + ' candidates to confirm', missed + ' not found' ]
+      : [ 'уточнено ' + applied, 'вариантов на подтверждение ' + suggested, 'не нашлось ' + missed ];
+    if (failed) parts.push(isEn() ? failed + ' requests failed' : 'запросов не удалось ' + failed);
+    if (targets.length > CAP) parts.push(isEn()
+      ? 'first ' + CAP + ' of ' + targets.length + ' – click again for the rest'
+      : 'обработаны первые ' + CAP + ' из ' + targets.length + ' – нажмите ещё раз для остальных');
+    st.textContent = parts.join(', ') + '.'
+      + (suggested ? (isEn() ? ' Candidates are marked in the table – click the row.'
+                             : ' Варианты помечены в таблице – щёлкните по строке.') : '');
+  });
 
   function bulkRIS(onlyOk, english){
     return bulk.filter(x => x.kind === 'record' && x.title && (!onlyOk || x.confidence === 'ok'))
@@ -2428,6 +2917,13 @@ if (typeof document !== 'undefined'){
     btn.textContent = isEn() ? 'Copied ✓' : 'Скопировано ✓';
     setTimeout(()=>{ btn.innerHTML = '<span class="ru">Копировать RIS</span><span class="en">Copy RIS</span>'; }, 2200);
   });
+
+  /* Только чтение: нужно автотестам, чтобы сверять разобранные поля
+     и выгрузку, не щёлкая по интерфейсу. Ничего не отправляет и не меняет. */
+  window.__reftidy = {
+    bulk: () => bulk,
+    ris:  (onlyOk, english) => bulkRIS(!!onlyOk, !!english)
+  };
 }
 
 if (typeof module !== 'undefined' && module.exports){
