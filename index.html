@@ -381,6 +381,31 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
   .footer-inner{flex-direction:column;align-items:flex-start;gap:14px}
 }
 
+/* ── Плашка «что нового» ─────────────────────────────────────────────── */
+.newsbar{
+  position:relative;margin:0 0 26px;padding:16px 46px 16px 18px;
+  background:var(--ok-bg);border:1px solid var(--ok-border);
+  border-radius:var(--radius);font-size:14px;line-height:1.6;color:var(--ink)
+}
+.newsbar b{color:var(--ok)}
+.newsbar .nb-date{
+  display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:5px
+}
+.newsbar p{margin:0 0 7px}
+.newsbar p:last-of-type{margin-bottom:0}
+.newsbar code{
+  font-family:var(--mono);font-size:12.5px;
+  background:rgba(255,255,255,.6);padding:1px 5px;border-radius:3px
+}
+.newsbar .nb-close{
+  position:absolute;top:8px;right:8px;width:30px;height:30px;
+  border:0;background:none;cursor:pointer;border-radius:6px;
+  font-size:19px;line-height:1;color:var(--faint)
+}
+.newsbar .nb-close:hover{background:rgba(0,0,0,.05);color:var(--ink)}
+@media(max-width:560px){ .newsbar{padding-right:18px} .newsbar .nb-close{position:static;float:right} }
+
 .hidden{display:none!important}
 </style>
 </head>
@@ -397,6 +422,22 @@ table.bib tr.pick:hover td{background:rgba(168,93,62,.06)}
 
 <main>
 <div class="wrap">
+
+<div class="newsbar hidden" id="newsbar">
+  <button class="nb-close" id="nbClose" aria-label="Закрыть">&times;</button>
+  <span class="nb-date">
+    <span class="ru">Обновление · 12 октября 2026</span>
+    <span class="en">Update · 12 October 2026</span>
+  </span>
+  <p>
+    <span class="ru"><b>Исправлен разбор авторефератов и диссертаций.</b> Раньше служебный блок вида «автореферат дис. … кандидата наук : 09.00.11» оставался внутри заглавия, а место издания терялось. Теперь жанр, учёная степень, шифр специальности, город и организация, где проходила защита, разбираются в отдельные поля. Работает и с полным описанием из библиотечного каталога, и с сокращённым из готового списка литературы.</span>
+    <span class="en"><b>Fixed: parsing of dissertations and their abstracts.</b> The genre block used to stay inside the title and the place of publication was lost. Genre, degree, field code, city, and the awarding institution now go into their own fields — both for full library-catalogue records and for the abbreviated form found in ordinary reference lists.</span>
+  </p>
+  <p>
+    <span class="ru"><b>Важно для Zotero.</b> В Zotero нет отдельного типа для автореферата — он заводится диссертацией, а жанр пишется в поле «Тип». Напечатать это умеет только стиль <code>Russian GOST R 7.0.5-2008 (numeric)</code> в редакции 2025 года: два других стиля ГОСТ, обновлявшиеся в 2021 году, теряют у диссертаций жанр, место, организацию и объём.</span>
+    <span class="en"><b>Note for Zotero.</b> Zotero has no separate item type for a dissertation abstract: use the thesis type, where the genre goes into the "Type" field. Only <code>Russian GOST R 7.0.5-2008 (numeric)</code> as updated in 2025 prints it; the two GOST styles last updated in 2021 drop genre, place, institution, and page count for theses.</span>
+  </p>
+</div>
 
 <header class="page-header">
   <h1>
@@ -1442,6 +1483,69 @@ function parseGost(raw, ctx){
             .replace(/\(\s*(?:дата обращения|дата доступа|accessed)[^)]*\)/ig,' ')
             .replace(/\bURL\s*:\s*/ig,' '));
 
+  /* ─────────── Автореферат и диссертация из каталога РГБ ───────────
+   Запись РГБ устроена единообразно, и почти всё в ней — служебное:
+
+   Заглавие : автореферат дис. ... кандидата философских наук : 09.00.11
+   / ФИО ; [Место защиты: Университет ; Диссовет …]. - Саратов, 2021. - 28 с.
+
+   Если это не разобрать отдельно, блок «автореферат дис. …» остаётся
+   в заглавии, «Место защиты» принимается за место издания, а ФИО из области
+   ответственности добавляется вторым автором — иногда вместе с Ломоносовым
+   из названия университета. Поэтому служебные блоки снимаются заранее. */
+function stripThesisNoise(str, rec){
+  if (!/автореф|диссертаци|дис(?:c)?\.\s*[…\.]/i.test(str)) return str;
+  let s = str;
+
+  // Жанр: автореферат или сама диссертация
+  rec.genre = /автореф/i.test(s) ? 'Автореферат диссертации' : 'Диссертация';
+
+  // [Место защиты: Организация ; Диссовет …] — это организация, а не город издания
+  const mz = /\[\s*Место защиты\s*:\s*([^\]]+)\]/i.exec(s);
+  if (mz){
+    rec.institution = norm(mz[1].split(/\s*;\s*/)[0]).replace(/^[«"']+|[»"']+$/g, '');
+    s = norm(s.replace(mz[0], ' '));
+  }
+
+  // Выходные данные автореферата: издателя нет, только «. - Город, Год»
+  const IMP = new RegExp(
+    '(?:^|[.,]\\s*)[–—−-]\\s*(' + PLACE_RE + ')\\s*,\\s*(1[5-9]\\d{2}|20\\d{2})');
+  const im = IMP.exec(s);
+  if (im){
+    rec.place = norm(im[1]).replace(/[.,]$/, '');
+    rec.year  = im[2];
+    s = norm(s.slice(0, im.index) + ' ' + s.slice(im.index + im[0].length));
+  }
+
+  /* Блок жанра со степенью и шифром специальности.
+     Варианты: «автореферат дис. ... кандидата философских наук : 09.00.11»,
+     «автореферат диссертации … кандидата технических наук : специальность
+     05.22.10 - Эксплуатация автомобильного транспорта». */
+  const GEN = new RegExp(
+    '\\s*:?\\s*' +
+    '(автореф[а-яё]*\\.?\\s*дис[а-яё]*\\.?|дис(?:c)?[а-яё]*\\.?)' +         // жанр
+    '\\s*[…\\.\\s]*' +
+    '(?:на\\s+соискание[^:/]*?)?' +
+    '((?:канд|докт|д-ра)[а-яё]*\\.?\\s+[а-яё-]+\\.?\\s+наук[а-яё]*)' +      // степень
+    '(?:\\s*:\\s*(?:специальность\\s*)?([\\d.]{3,12})\\s*[–—−-]?\\s*([^/;]{0,70})?)?',
+    'i');
+  const g = GEN.exec(s);
+  if (g){
+    rec.degree = norm(g[2]).replace(/[:.,]\s*$/, '');
+    if (g[3]){
+      const nm = g[4] ? norm(g[4]).replace(/[.,]+$/, '') : '';
+      rec.specialty = norm(g[3]).replace(/\.$/, '') + (nm ? ' — ' + nm : '');
+    }
+    s = norm(s.slice(0, g.index) + ' ' + s.slice(g.index + g[0].length));
+  }
+
+  // Повтор ФИО автора внутри заглавия: «Заглавие : Петрунина Екатерина Алексеевна;»
+  s = norm(s.replace(/\s*:\s*[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+)?\s*;/, ' '));
+
+  // точку в конце не трогаем: «XX вв.» — часть заглавия
+  return norm(s.replace(/\s*[;:,]\s*$/, ''));
+}
+
   /* Каталожная запись несёт служебные сведения, которых в ссылке быть не должно:
      вид содержания «[Текст]», сведения об иллюстрациях «: ил.», размер «; 27 см».
      Серия и ISBN — наоборот, полезны, но у них свои поля, а не заглавие. */
@@ -1470,10 +1574,11 @@ function parseGost(raw, ctx){
   }
 
   // диссертация / автореферат
-  if (/дис(?:c)?\.|автореф/i.test(s)){
+  if (/дис(?:c)?\.|автореф|диссертаци/i.test(s)){
     rec.type = 'THES';
-    const deg = /((?:автореф\.\s*)?дис(?:c)?\.\s*[…\.\s]*(?:канд|докт|д-ра)[^\/]*)/i.exec(s);
-    if (deg) rec.degree = norm(deg[1]).replace(/[:.]\s*$/,'');
+    s = stripThesisNoise(s, rec);
+    if (rec.place) P('place');
+    if (rec.year)  P('year');
   }
 
   // область ответственности: первый « / » после начала
@@ -1495,6 +1600,9 @@ function parseGost(raw, ctx){
     rec.type = rec.type === 'THES' ? 'THES' : 'JOUR';
   }
 
+  /* У диссертации и автореферата автор ровно один. Без этого ограничения
+     «Взгляды К. Н. Леонтьева…» даёт второго автора «Взгляды К. Н.». */
+  const oneAuthorOnly = rec.type === 'THES';
   // автор в начале записи: «Гаврилов, Д.В. » или «Гаврилов Д.В. »
   /* Каталоги повторяют в заголовке всех авторов, а не только первого:
      «Шабунова А. А., Соловьева Т. С. (канд. социол. наук), Ласточкина М. А. Заглавие…».
@@ -1507,6 +1615,7 @@ function parseGost(raw, ctx){
   const headAuthors = [];
   let guardHead = 0;
   while (guardHead++ < 8){
+    if (oneAuthorOnly && headAuthors.length) break;
     const mi = reHeadInit.exec(s);
     if (mi){
       headAuthors.push({ family: mi[1], given: norm(mi[2]) });
@@ -1536,7 +1645,11 @@ function parseGost(raw, ctx){
     }
   }
 
-  rec.title = norm(s).replace(/\s*[.,–—−-]+\s*$/,'');
+  /* Хвостовую пунктуацию снимаем, но точку у сокращения оставляем:
+     «XIX – XX вв.», «Т. 2», «и др.» — точка там часть текста, а не разделитель. */
+  rec.title = norm(s).replace(/\s*[,–—−-]+\s*$/,'')
+                     .replace(/\s*\.\s*$/, m0 => /(?:^|[\s(])(?:вв|гг|в|г|т|ч|кн|сб|изд|ред|сост|пер|др)\.$/i
+                        .test(norm(s).replace(/\s*[,–—−-]+\s*$/,'')) ? '.' : '');
 
   /* Выходные данные могли прилипнуть к заглавию: «…с объяснениями. СПб.: Хоз. деп. М.В.Д., 1870».
      Место — это одно-три слова («СПб.», «Санкт-Петербург», «Ленинград – Москва»),
@@ -1604,13 +1717,17 @@ function parseGost(raw, ctx){
     }
   }
   if (rec.type === 'THES' && rec.title){
-    const cut = rec.title.search(/\s*:\s*(?:автореф\.|дис)/i);
+    const cut = rec.title.search(/\s*:\s*(?:автореф|дис(?:c)?\.|диссертаци)/i);
     if (cut > 0) rec.title = norm(rec.title.slice(0, cut));
   }
   if (rec.title) P('title');
 
-  // авторы и редакторы из области ответственности — она точнее заголовка
-  const resp = authorsFromResponsibility(responsibility);
+  /* У автореферата область ответственности повторяет автора в родительном падеже
+     и перечисляет научных руководителей, а в названии организации могут стоять
+     фамилии — «имени М. В. Ломоносова». Брать оттуда авторов нельзя. */
+  const resp = rec.type === 'THES' && rec.authors && rec.authors.length
+             ? { authors: [], editors: [], translators: [] }
+             : authorsFromResponsibility(responsibility);
   if (resp.authors.length){
     const merged = resp.authors.slice();
     if (rec.authors && rec.authors.length){
@@ -1696,6 +1813,16 @@ function parseGost(raw, ctx){
      молча отдавать неверное поле. Если в заглавии осталась структура самой
      записи — чужие инициалы, область с пробелами вокруг двоеточия, хвост
      выходных данных, — значит разбор не доделан, и это надо показать. */
+  /* Имя без запятой — «Лю Шоувэнь.» — заголовком не распознаётся, и фамилия
+     остаётся в начале заглавия. Срезать, когда авторы уже определены. */
+  if (rec.type === 'THES' && rec.title && (rec.authors || []).length){
+    const a0 = rec.authors[0];
+    const esc = x => String(x || '').trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const given = esc(a0.given);
+    const lead = new RegExp('^' + esc(a0.family) + (given ? '(?:\\s+' + given + ')?' : '') + '\\s*[.,]\\s+');
+    if (lead.test(rec.title)) rec.title = norm(rec.title.replace(lead, ''));
+  }
+
   if (rec.title){
     const traces = [];
     if (/^[,;:–—−-]/.test(rec.title))                   traces.push('обрывок в начале');
@@ -2006,7 +2133,16 @@ function toRIS(rec, vaultPath){
   }
   if (rec.place)     L.push('CY  - ' + rec.place);
   if (rec.publisher) L.push('PB  - ' + rec.publisher);
-  if (rec.degree)    L.push('M3  - ' + rec.degree);
+  /* В Zotero нет отдельного типа «автореферат»: он заводится диссертацией,
+     а жанр пишется в поле «Тип» (RIS M3). Поэтому собираем строку целиком:
+     «Автореферат диссертации … кандидата философских наук (09.00.11)». */
+  if (rec.genre || rec.degree){
+    const m3 = [rec.genre, rec.degree ? '… ' + rec.degree : '']
+                 .filter(Boolean).join(' ')
+               + (rec.specialty ? ' (' + rec.specialty + ')' : '');
+    L.push('M3  - ' + norm(m3));
+  }
+  if (rec.institution) L.push('PB  - ' + rec.institution);
   // только число: «с.» дописывает сам стиль оформления, иначе в Word выходит «39 с. c.»
   if (!rec.pages && rec.numPages) L.push('SP  - ' + rec.numPages);
   if (rec.numberOfVolumes) L.push('NV  - ' + rec.numberOfVolumes);
@@ -2917,6 +3053,21 @@ if (typeof document !== 'undefined'){
     btn.textContent = isEn() ? 'Copied ✓' : 'Скопировано ✓';
     setTimeout(()=>{ btn.innerHTML = '<span class="ru">Копировать RIS</span><span class="en">Copy RIS</span>'; }, 2200);
   });
+
+  /* Плашка «что нового»: показывается, пока её не закрыли. Ключ со сроком —
+     при следующем обновлении достаточно поменять дату, и она появится снова. */
+  (function(){
+    const KEY = 'reftidy_news_2026_10_12';
+    const bar = $('newsbar');
+    if (!bar) return;
+    let seen = false;
+    try { seen = localStorage.getItem(KEY) === '1'; } catch(e){}
+    if (!seen) bar.classList.remove('hidden');
+    $('nbClose').addEventListener('click', () => {
+      bar.classList.add('hidden');
+      try { localStorage.setItem(KEY, '1'); } catch(e){}
+    });
+  })();
 
   /* Только чтение: нужно автотестам, чтобы сверять разобранные поля
      и выгрузку, не щёлкая по интерфейсу. Ничего не отправляет и не меняет. */
